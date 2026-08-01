@@ -1,0 +1,32 @@
+# @claude sob demanda: mencione @claude num comentário de issue ou PR e o
+# Claude analisa o contexto e responde/implementa (a action detecta o modo
+# automaticamente). Mesmo secret ANTHROPIC_API_KEY do claude-review.yml.
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+jobs:
+  claude:
+    # Só gasta runner/tokens quando há menção explícita
+    if: contains(github.event.comment.body || github.event.issue.body, '@claude')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: |
+            --model claude-sonnet-5
+            --max-turns 15

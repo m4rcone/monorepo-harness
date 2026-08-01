@@ -1,0 +1,3 @@
+packages:
+  - "apps/*"
+  - "packages/*" # libs compartilhadas futuras entram aqui

@@ -1,0 +1,16 @@
+// Encaixe OPCIONAL de isolamento. Este devcontainer é o mínimo funcional
+// (ambiente padronizado). Para rodar Claude Code com
+// --dangerously-skip-permissions, NÃO use este: copie o devcontainer OFICIAL
+// da Anthropic, que traz firewall iptables default-deny:
+//   https://github.com/anthropics/claude-code/tree/main/.devcontainer
+{
+  "name": "monorepo-harness",
+  "build": { "dockerfile": "Dockerfile" },
+  "remoteUser": "node",
+  "postCreateCommand": "corepack enable && pnpm install",
+  "customizations": {
+    "vscode": {
+      "extensions": ["anthropic.claude-code", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  }
+}

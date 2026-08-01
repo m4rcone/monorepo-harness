@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+
+# Segredos — nunca versionados (deny rules e hooks também os protegem)
+.env
+.env.*
+
+# Camada pessoal do Claude Code (não compartilhada)
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/agent-memory-local/

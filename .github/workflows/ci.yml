@@ -1,0 +1,32 @@
+# CI determinístico: lint, typecheck, testes e build.
+# Princípio do harness: ESTE workflow é quem gateia merge. Os workflows com
+# Claude (claude.yml, claude-review.yml) são advisory e nunca bloqueiam.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Lê a versão do pnpm do campo "packageManager" do package.json raiz
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # Requer pnpm-lock.yaml comitado (rode `pnpm install` uma vez e comite o lockfile)
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run lint
+      - run: pnpm run typecheck
+      - run: pnpm run test
+      - run: pnpm run build
