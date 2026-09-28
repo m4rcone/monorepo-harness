@@ -40,7 +40,9 @@ framework são suas.
    `package.json`. Registre a stack com `/adr`.
 7. CI com Claude (opcional): `/install-github-app` instala o app e o secret. Os workflows já estão
    aqui, com os nomes que o comando gera (`claude.yml`, `claude-code-review.yml`): se ele oferecer
-   sobrescrevê-los, compare antes.
+   sobrescrevê-los, compare antes (os gerados não têm o `vars.CLAUDE_CI == 'true' &&` no `if`).
+   Eles ficam desligados (jobs _skipped_) até você criar, depois do app e do secret, a variável do
+   repositório `CLAUDE_CI=true`: `gh variable set CLAUDE_CI --body true`.
 8. **Proteja a `main`** (Settings → Rules → Rulesets → New branch ruleset, alvo `main`): exija PR,
    exija o check `checks` do CI e bloqueie force push. Sem isso o CI só informa, não bloqueia. Em
    repositório privado, rulesets exigem GitHub Pro/Team.
@@ -153,6 +155,8 @@ a v2.1.283 quando o projeto não fixa `defaultMode`: um classificador revisa as 
 
 ## Custos de CI
 
+- `claude-code-review.yml` e `claude.yml` só rodam com a variável `CLAUDE_CI=true`; sem ela, nenhum
+  runner sobe para o Claude.
 - `claude-code-review.yml`: plugin oficial `code-review` com comentários inline. Uma revisão por PR
   (abertura, _ready for review_, reabertura); pula rascunhos, forks (sem o secret), bots e PRs que já
   têm comentário do Claude (revisão anterior ou resposta a um `@claude`);

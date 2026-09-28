@@ -5,8 +5,10 @@
 # Mesmo nome de arquivo que o /install-github-app gera: o comando não cria um 2º workflow de review.
 #
 # Setup (uma vez): `/install-github-app` no Claude Code, ou instale https://github.com/apps/claude
-# e crie o secret ANTHROPIC_API_KEY em Settings → Secrets → Actions. Com assinatura Claude (secret
-# CLAUDE_CODE_OAUTH_TOKEN, gerado por `claude setup-token`), troque `anthropic_api_key:` por
+# e crie o secret ANTHROPIC_API_KEY em Settings → Secrets → Actions. Depois ligue os jobs com a
+# variável `CLAUDE_CI=true` (`gh variable set CLAUDE_CI --body true`): sem ela ficam skipped, em vez
+# de falhar por falta de app/secret. Com assinatura Claude (secret CLAUDE_CODE_OAUTH_TOKEN, gerado
+# por `claude setup-token`), troque `anthropic_api_key:` por
 # `claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}` aqui e no claude.yml.
 # Alternativa sem workflow: Code Review gerenciado (code.claude.com/docs/en/code-review).
 #
@@ -32,8 +34,10 @@ concurrency:
 
 jobs:
   review:
-    # Rascunho espera ficar pronto; PR de fork não recebe o secret; bots são rejeitados pela action
+    # Opt-in (CLAUDE_CI); rascunho espera ficar pronto; PR de fork não recebe o secret; bots são
+    # rejeitados pela action
     if: >-
+      vars.CLAUDE_CI == 'true' &&
       !github.event.pull_request.draft &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.user.type != 'Bot'
