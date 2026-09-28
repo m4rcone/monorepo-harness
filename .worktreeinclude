@@ -1,0 +1,5 @@
+# Arquivos gitignored copiados para cada worktree nova (claude --worktree, subagents com
+# isolation: worktree). Sintaxe do .gitignore: vale em qualquer nível. Só copia o que é
+# gitignored, então o .env.example versionado fica de fora.
+.env
+.env.*

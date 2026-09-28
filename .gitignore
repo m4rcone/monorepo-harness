@@ -1,12 +1,18 @@
 node_modules/
 dist/
 coverage/
+*.log
+*.tsbuildinfo
+.DS_Store
+.pnpm-store/
 
 # Segredos — nunca versionados (deny rules e hooks também os protegem)
 .env
 .env.*
+!.env.example
 
 # Camada pessoal do Claude Code (não compartilhada)
 CLAUDE.local.md
 .claude/settings.local.json
 .claude/agent-memory-local/
+.claude/worktrees/
