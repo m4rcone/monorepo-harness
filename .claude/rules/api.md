@@ -10,5 +10,5 @@ paths:
 - Rotas kebab-case; JSON camelCase; versão no path (`/v1/...`)
 - Erros no formato `{ "error": { "code", "message" } }`; códigos centralizados num módulo de erros
 - Toda rota de lista pagina com `cursor` + `limit`
-- Endpoint novo exige: validação de entrada na borda + teste de contrato
+- Endpoint novo exige validação de entrada na borda + teste de contrato (chama a rota via HTTP e confere status e formato do corpo, inclusive o de erro)
 - Handlers finos: regra de negócio fora da camada HTTP

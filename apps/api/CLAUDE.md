@@ -1,19 +1,19 @@
 # apps/api
 
 <!-- ADAPTE: framework (Fastify? Hono? Express?), porta, banco, como sobe local. -->
-<!-- Este arquivo carrega SOB DEMANDA quando o Claude trabalha em arquivos daqui,
-     somando-se ao CLAUDE.md raiz (carregamento é aditivo). Mantenha só o local. -->
+<!-- Carrega sob demanda quando o Claude trabalha em arquivos daqui, somando-se ao CLAUDE.md raiz
+     (junto com .claude/rules/api.md). Mantenha só o que é local ao pacote. -->
 
-## Comandos (deste pacote)
+## Comandos (da raiz, sem `cd`)
 
-- Testes: `pnpm run test` (rode DAQUI; não a suíte inteira da raiz)
+- Testes do pacote: `pnpm vitest run --project @app/api`
 - Typecheck: `pnpm run typecheck` · Build: `pnpm run build`
 
 ## Convenções locais
 
-- As regras de API carregam sozinhas de `.claude/rules/api.md` (raiz) ao tocar arquivos daqui
-- Workflow: `/new-endpoint <método> <rota>` cria endpoint no padrão da casa
+- Imports relativos com extensão `.js` (`./db.js`): a API usa NodeNext e o tsc acusa a falta
+- Endpoint novo: skill `new-endpoint`
 
 ## Gotchas
 
-<!-- ADAPTE: ex. `DATABASE_URL` de teste vem de `.env.test`; seeds em scripts/seed.ts -->
+<!-- ADAPTE: ex. `DATABASE_URL` de teste exportada no shell (o sandbox não lê `.env*`); seeds em scripts/seed.ts -->

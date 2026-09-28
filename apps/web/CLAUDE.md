@@ -1,18 +1,18 @@
 # apps/web
 
 <!-- ADAPTE: framework (React? Vue? Svelte?), bundler, como sobe local. -->
-<!-- Carrega sob demanda ao trabalhar em arquivos daqui; aditivo ao CLAUDE.md raiz. -->
+<!-- Carrega sob demanda quando o Claude trabalha em arquivos daqui, somando-se ao CLAUDE.md raiz
+     (junto com .claude/rules/web.md). Mantenha só o que é local ao pacote. -->
 
-## Comandos (deste pacote)
+## Comandos (da raiz, sem `cd`)
 
-- Testes: `pnpm run test` (rode DAQUI; não a suíte inteira da raiz)
+- Testes do pacote: `pnpm vitest run --project @app/web`
 - Typecheck: `pnpm run typecheck` · Build: `pnpm run build`
 
 ## Convenções locais
 
-- As regras de frontend carregam sozinhas de `.claude/rules/web.md` (raiz)
-- Workflow: `/new-component <Nome>` cria componente no padrão da casa
-- Mudança visual: verifique com screenshot quando possível (encaixe frontend)
+- Componente novo: skill `new-component`
+- Mudança visual: suba o dev server e confira no navegador (ferramenta de browser, se houver); sem ela, peça ao humano para conferir
 
 ## Gotchas
 
