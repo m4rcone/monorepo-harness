@@ -1,6 +1,7 @@
 # @claude sob demanda: mencione @claude num comentário de issue/PR (ou no título/corpo de uma
 # issue nova) e o Claude analisa e responde ou implementa (a action detecta o modo sozinha).
-# Autenticação: a mesma do claude-code-review.yml. O .claude/settings.json do projeto vale no runner.
+# Autenticação e opt-in (variável CLAUDE_CI=true): os mesmos do claude-code-review.yml.
+# O .claude/settings.json do projeto vale no runner.
 name: Claude
 
 on:
@@ -16,8 +17,9 @@ on:
 jobs:
   claude:
     # Só sobe runner com menção explícita de quem tem acesso ao repo (a action ainda confere
-    # write access; o filtro aqui evita gastar runner com comentários de terceiros)
+    # write access; o filtro aqui evita gastar runner com comentários de terceiros). Opt-in: CLAUDE_CI
     if: |
+      vars.CLAUDE_CI == 'true' &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
         github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) && (
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||

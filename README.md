@@ -40,14 +40,16 @@ framework são suas.
    `package.json`. Registre a stack com `/adr`.
 7. CI com Claude (opcional): `/install-github-app` instala o app e o secret. Os workflows já estão
    aqui, com os nomes que o comando gera (`claude.yml`, `claude-code-review.yml`): se ele oferecer
-   sobrescrevê-los, compare antes.
+   sobrescrevê-los, compare antes (os gerados não têm o `vars.CLAUDE_CI == 'true' &&` no `if`).
+   Eles ficam desligados (jobs _skipped_) até você criar, depois do app e do secret, a variável do
+   repositório `CLAUDE_CI=true`: `gh variable set CLAUDE_CI --body true`.
 8. **Proteja a `main`** (Settings → Rules → Rulesets → New branch ruleset, alvo `main`): exija PR,
    exija o check `checks` do CI e bloqueie force push. Sem isso o CI só informa, não bloqueia. Em
    repositório privado, rulesets exigem GitHub Pro/Team.
 
 > **Sessões na raiz, por design**: hooks e permissions carregam do `.claude/` do diretório onde a
-> sessão inicia, sem fallback para os pais. Inicie sempre na raiz: CLAUDE.md aninhados, rules com
-> `paths:` e skills aninhadas fazem o escopo por você. Se um dia valer iniciar dentro de um pacote,
+> sessão inicia, sem fallback para os pais. Inicie sempre na raiz: CLAUDE.md aninhados e rules com
+> `paths:` fazem o escopo por você. Se um dia valer iniciar dentro de um pacote,
 > crie ali um `.claude/settings.json` cujos hooks apontem para os scripts da raiz; copiar o da raiz
 > sem ajuste deixa os hooks sem efeito.
 
@@ -62,7 +64,6 @@ framework são suas.
 | `.claude/hooks/`                  | Determinístico; veja [Hooks](#hooks). Todos têm casos em `scripts/test-hooks.sh` (roda no CI).                                                         |
 | `.claude/skills/`                 | Fluxos: `/foundation`, `/spec`, `/adr`, `/fix-issue` (só você invoca) e `/commit`, `/pr` (você ou o Claude; commit, push e PR sempre pedem aprovação). |
 | `.claude/agents/code-reviewer.md` | Revisor de convenções em contexto isolado, instruído a não editar. Chame com `@agent-code-reviewer`; complementa o `/code-review` (bugs).              |
-| `apps/*/.claude/skills/`          | Skills por pacote (`/new-endpoint`, `/new-component`). Aparecem no `/` depois que o Claude lê um arquivo do pacote, ou já no início com `/add-dir`.    |
 | `docs/`                           | `architecture.md` (vivo), `decisions/` (ADRs via `/adr`), `specs/` (via `/spec`). Referenciados por caminho, nunca `@`-importados.                     |
 | `.github/`                        | `ci.yml` gateia merge (sem Claude); `claude-code-review.yml` revisa PRs (advisory); `claude.yml` responde a `@claude`; `dependabot.yml`.               |
 | `.devcontainer/`                  | Ambiente padronizado com Claude Code, `gh` e sandbox. Não é isolamento: para `--dangerously-skip-permissions`, use o devcontainer **oficial**.         |
@@ -154,6 +155,8 @@ a v2.1.283 quando o projeto não fixa `defaultMode`: um classificador revisa as 
 
 ## Custos de CI
 
+- `claude-code-review.yml` e `claude.yml` só rodam com a variável `CLAUDE_CI=true`; sem ela, nenhum
+  runner sobe para o Claude.
 - `claude-code-review.yml`: plugin oficial `code-review` com comentários inline. Uma revisão por PR
   (abertura, _ready for review_, reabertura); pula rascunhos, forks (sem o secret), bots e PRs que já
   têm comentário do Claude (revisão anterior ou resposta a um `@claude`);
