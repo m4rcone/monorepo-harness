@@ -12,7 +12,6 @@
 ## Convenções locais
 
 - Imports relativos com extensão `.js` (`./db.js`): a API usa NodeNext e o tsc acusa a falta
-- Endpoint novo: skill `new-endpoint`
 
 ## Gotchas
 

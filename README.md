@@ -46,8 +46,8 @@ framework são suas.
    repositório privado, rulesets exigem GitHub Pro/Team.
 
 > **Sessões na raiz, por design**: hooks e permissions carregam do `.claude/` do diretório onde a
-> sessão inicia, sem fallback para os pais. Inicie sempre na raiz: CLAUDE.md aninhados, rules com
-> `paths:` e skills aninhadas fazem o escopo por você. Se um dia valer iniciar dentro de um pacote,
+> sessão inicia, sem fallback para os pais. Inicie sempre na raiz: CLAUDE.md aninhados e rules com
+> `paths:` fazem o escopo por você. Se um dia valer iniciar dentro de um pacote,
 > crie ali um `.claude/settings.json` cujos hooks apontem para os scripts da raiz; copiar o da raiz
 > sem ajuste deixa os hooks sem efeito.
 
@@ -62,7 +62,6 @@ framework são suas.
 | `.claude/hooks/`                  | Determinístico; veja [Hooks](#hooks). Todos têm casos em `scripts/test-hooks.sh` (roda no CI).                                                         |
 | `.claude/skills/`                 | Fluxos: `/foundation`, `/spec`, `/adr`, `/fix-issue` (só você invoca) e `/commit`, `/pr` (você ou o Claude; commit, push e PR sempre pedem aprovação). |
 | `.claude/agents/code-reviewer.md` | Revisor de convenções em contexto isolado, instruído a não editar. Chame com `@agent-code-reviewer`; complementa o `/code-review` (bugs).              |
-| `apps/*/.claude/skills/`          | Skills por pacote (`/new-endpoint`, `/new-component`). Aparecem no `/` depois que o Claude lê um arquivo do pacote, ou já no início com `/add-dir`.    |
 | `docs/`                           | `architecture.md` (vivo), `decisions/` (ADRs via `/adr`), `specs/` (via `/spec`). Referenciados por caminho, nunca `@`-importados.                     |
 | `.github/`                        | `ci.yml` gateia merge (sem Claude); `claude-code-review.yml` revisa PRs (advisory); `claude.yml` responde a `@claude`; `dependabot.yml`.               |
 | `.devcontainer/`                  | Ambiente padronizado com Claude Code, `gh` e sandbox. Não é isolamento: para `--dangerously-skip-permissions`, use o devcontainer **oficial**.         |

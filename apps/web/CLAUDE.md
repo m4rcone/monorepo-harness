@@ -11,7 +11,6 @@
 
 ## Convenções locais
 
-- Componente novo: skill `new-component`
 - Mudança visual: suba o dev server e confira no navegador (ferramenta de browser, se houver); sem ela, peça ao humano para conferir
 
 ## Gotchas
