@@ -1,0 +1,20 @@
+# Atualizações semanais e agrupadas (um PR por ecossistema). O cooldown acompanha o
+# minimumReleaseAge do pnpm-workspace.yaml: versão com menos de 1 dia não é proposta.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      actions: { patterns: ["*"] }
+
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: weekly }
+    cooldown: { default-days: 1 }
+    groups:
+      npm: { patterns: ["*"] }
+    ignore:
+      # O typescript-eslint limita o TypeScript (hoje <6.1): suba à mão quando ele aceitar
+      - dependency-name: typescript
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]

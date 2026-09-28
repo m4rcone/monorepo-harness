@@ -2,20 +2,27 @@
   "name": "monorepo-harness",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.0.0",
+  "packageManager": "pnpm@10.34.5",
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "pnpm -r run typecheck",
-    "test": "pnpm -r run test",
-    "build": "pnpm -r run build"
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc -p tsconfig.json && pnpm -r --no-bail run typecheck",
+    "test": "pnpm -r --no-bail run test",
+    "build": "pnpm -r run build",
+    "test:hooks": "bash scripts/test-hooks.sh",
+    "check": "pnpm run lint && pnpm run format:check && pnpm run test:hooks && pnpm run typecheck && pnpm run test && pnpm run build"
   },
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "@types/node": "^22.10.0",
-    "eslint": "^9.20.0",
-    "prettier": "^3.4.2",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.22.0",
-    "vitest": "^3.0.5"
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.0",
+    "eslint": "^10.11.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

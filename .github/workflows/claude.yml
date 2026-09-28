@@ -1,6 +1,6 @@
-# @claude sob demanda: mencione @claude num comentário de issue ou PR e o
-# Claude analisa o contexto e responde/implementa (a action detecta o modo
-# automaticamente). Mesmo secret ANTHROPIC_API_KEY do claude-review.yml.
+# @claude sob demanda: mencione @claude num comentário de issue/PR (ou no título/corpo de uma
+# issue nova) e o Claude analisa e responde ou implementa (a action detecta o modo sozinha).
+# Autenticação: a mesma do claude-code-review.yml. O .claude/settings.json do projeto vale no runner.
 name: Claude
 
 on:
@@ -8,25 +8,69 @@ on:
     types: [created]
   pull_request_review_comment:
     types: [created]
+  pull_request_review:
+    types: [submitted]
   issues:
     types: [opened]
 
 jobs:
   claude:
-    # Só gasta runner/tokens quando há menção explícita
-    if: contains(github.event.comment.body || github.event.issue.body, '@claude')
+    # Só sobe runner com menção explícita de quem tem acesso ao repo (a action ainda confere
+    # write access; o filtro aqui evita gastar runner com comentários de terceiros)
+    if: |
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'),
+        github.event.comment.author_association || github.event.review.author_association || github.event.issue.author_association) && (
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))) &&
+      (!github.event.pull_request || github.event.pull_request.head.repo.full_name == github.repository)
+    # No job (não no workflow): comentários sem @claude não entram no grupo. Não cancela a execução
+    # em curso (pode estar no meio de um commit), mas o GitHub guarda só 1 pendente por grupo: dois
+    # @claude seguidos durante uma execução → só o mais recente roda.
+    concurrency:
+      group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       contents: write
       pull-requests: write
       issues: write
+      id-token: write # OIDC para o token do Claude GitHub App
+      actions: read # permite ler resultados do CI no PR
     steps:
-      - uses: actions/checkout@v4
+      # Código de fork não roda aqui (tem secret e permissão de escrita). Para eventos de PR o `if`
+      # já filtra; comentário em PR chega como issue_comment e precisa desta checagem.
+      - name: Recusa PR de fork
+        if: github.event.issue.pull_request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          FORK=$(gh pr view ${{ github.event.issue.number }} -R ${{ github.repository }} --json isCrossRepository -q .isCrossRepository)
+          [ "$FORK" = "false" ] || { echo "PR de fork: o @claude não roda código de fork com secrets."; exit 1; }
+
+      # Em PR, parte do head do PR: as dependências instaladas batem com o lockfile dele
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.pull_request.head.sha || (github.event.issue.pull_request && format('refs/pull/{0}/head', github.event.issue.number)) || '' }}
+
+      # Dependências instaladas: o Claude roda lint/typecheck/testes antes de entregar
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
 
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Commits pela API do GitHub: o `ask` de git commit/push do settings.json vale no runner
+          # e, sem humano para aprovar, bloquearia o git via Bash
+          use_commit_signing: true
           claude_args: |
-            --model claude-sonnet-5
-            --max-turns 15
+            --model claude-sonnet-5-5
+            --max-turns 25
+            --allowedTools "Bash(pnpm run *),Bash(pnpm vitest *)"

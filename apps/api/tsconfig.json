@@ -1,8 +1,10 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist"
+    // A API roda no Node (tsc → node dist/): imports relativos com extensão ".js"
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["src", "tests", "*.config.ts"]
 }

@@ -1,16 +1,24 @@
-// Encaixe OPCIONAL de isolamento. Este devcontainer é o mínimo funcional
-// (ambiente padronizado). Para rodar Claude Code com
-// --dangerously-skip-permissions, NÃO use este: copie o devcontainer OFICIAL
-// da Anthropic, que traz firewall iptables default-deny:
+// Encaixe OPCIONAL: ambiente padronizado (Node, pnpm, jq, gh, Claude Code e deps do sandbox).
+// NÃO é camada de isolamento. Para rodar com --dangerously-skip-permissions, use o devcontainer
+// OFICIAL da Anthropic, com firewall default-deny:
 //   https://github.com/anthropics/claude-code/tree/main/.devcontainer
+// Use o container OU o host no mesmo clone, não os dois: node_modules tem binários por plataforma.
+// Só no container? "Dev Containers: Clone Repository in Container Volume".
 {
-  "name": "monorepo-harness",
+  "name": "monorepo-harness", // ADAPTE
   "build": { "dockerfile": "Dockerfile" },
   "remoteUser": "node",
-  "postCreateCommand": "corepack enable && pnpm install",
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  // Login e configuração do Claude Code sobrevivem a rebuilds
+  "mounts": ["source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"],
+  "containerEnv": { "CLAUDE_CONFIG_DIR": "/home/node/.claude" },
+  "postCreateCommand": "pnpm install",
   "customizations": {
     "vscode": {
-      "extensions": ["anthropic.claude-code", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
     }
   }
 }

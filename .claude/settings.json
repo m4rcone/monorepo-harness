@@ -1,21 +1,26 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "defaultMode": "acceptEdits",
     "allow": [
-      "Bash(pnpm install)",
       "Bash(pnpm run *)",
       "Bash(pnpm vitest *)",
       "Bash(pnpm tsc *)",
       "Bash(pnpm eslint *)",
       "Bash(pnpm prettier *)",
       "Bash(git add *)",
+      "Bash(git switch *)",
       "Bash(git checkout *)",
       "Bash(git branch *)",
-      "Bash(git stash*)",
-      "Bash(gh issue *)",
+      "Bash(git stash *)",
+      "Bash(gh issue view *)",
+      "Bash(gh issue list *)",
       "Bash(gh pr view *)",
       "Bash(gh pr diff *)",
-      "Bash(gh pr list*)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh run list *)",
+      "Bash(gh run view *)",
       "WebFetch(domain:code.claude.com)",
       "WebFetch(domain:docs.claude.com)",
       "WebFetch(domain:nodejs.org)",
@@ -27,10 +32,49 @@
     "ask": [
       "Bash(git commit *)",
       "Bash(git push *)",
+      "Bash(git branch -D *)",
       "Bash(gh pr create *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh pr review *)",
+      "Bash(gh pr close *)",
+      "Bash(gh issue create *)",
+      "Bash(gh issue comment *)",
+      "Bash(gh issue close *)",
+      "Bash(gh issue edit *)",
+      "Bash(gh api *)",
+      "Bash(gh release *)",
+      "Bash(gh repo *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm i *)",
       "Bash(pnpm add *)",
       "Bash(pnpm remove *)",
-      "Bash(pnpm update *)"
+      "Bash(pnpm update *)",
+      "Bash(pnpm up *)",
+      "Bash(pnpm upgrade *)",
+      "Bash(pnpm dlx *)",
+      "Bash(pnpm create *)",
+      "Bash(pnpm * install *)",
+      "Bash(pnpm * install)",
+      "Bash(pnpm * i *)",
+      "Bash(pnpm * i)",
+      "Bash(pnpm * add *)",
+      "Bash(pnpm * remove *)",
+      "Bash(pnpm * update *)",
+      "Bash(pnpm * update)",
+      "Bash(pnpm * up *)",
+      "Bash(pnpm * up)",
+      "Bash(pnpm * dlx *)",
+      "Bash(pnpx *)",
+      "Bash(npx *)",
+      "Bash(npm install *)",
+      "Bash(npm i *)",
+      "Bash(npm ci *)",
+      "Bash(npm add *)",
+      "Bash(npm update *)",
+      "Bash(npm exec *)",
+      "Bash(npm x *)",
+      "Bash(npm create *)",
+      "Edit(/.github/workflows/**)"
     ],
     "deny": [
       "Read(.env)",
@@ -38,8 +82,6 @@
       "Read(secrets/**)",
       "Read(**/*.pem)",
       "Read(**/*.key)",
-      "Edit(.env)",
-      "Edit(.env.*)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
       "Bash(pnpm publish*)",
@@ -48,23 +90,76 @@
       "Bash(wget *)"
     ]
   },
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "excludedCommands": ["gh *"],
+    "filesystem": {
+      "allowWrite": [
+        "~/Library/pnpm",
+        "~/Library/Caches/pnpm",
+        "~/.local/share/pnpm",
+        "~/.cache/pnpm",
+        "~/.cache/node/corepack"
+      ]
+    },
+    "network": {
+      "allowLocalBinding": true,
+      "allowedDomains": [
+        "registry.npmjs.org",
+        "github.com",
+        "*.github.com",
+        "*.githubusercontent.com"
+      ]
+    },
+    "credentials": {
+      "files": [
+        { "path": "~/.ssh", "mode": "deny" },
+        { "path": "~/.aws", "mode": "deny" },
+        { "path": "~/.config/gcloud", "mode": "deny" },
+        { "path": "~/.kube", "mode": "deny" },
+        { "path": "~/.docker/config.json", "mode": "deny" }
+      ],
+      "envVars": [
+        { "name": "GITHUB_TOKEN", "mode": "deny" },
+        { "name": "GH_TOKEN", "mode": "deny" },
+        { "name": "NPM_TOKEN", "mode": "deny" },
+        { "name": "AWS_SECRET_ACCESS_KEY", "mode": "deny" },
+        { "name": "AWS_SESSION_TOKEN", "mode": "deny" }
+      ]
+    }
+  },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-files.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-files.sh",
+            "timeout": 10
           }
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Monitor|PowerShell",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-bash.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-bash.sh",
+            "timeout": 10
           }
         ]
       }
@@ -75,7 +170,21 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-ts.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-ts.sh",
+            "timeout": 60,
+            "statusMessage": "Lintando e formatando..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verify-on-stop.sh",
+            "timeout": 300,
+            "statusMessage": "Verificando typecheck e testes..."
           }
         ]
       }

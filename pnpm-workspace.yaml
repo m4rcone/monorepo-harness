@@ -1,3 +1,13 @@
 packages:
   - "apps/*"
-  - "packages/*" # libs compartilhadas futuras entram aqui
+  - "packages/*" # libs compartilhadas futuras
+
+# Supply chain (pnpm >= 10.26; a partir do pnpm 11 parte disto já é padrão)
+minimumReleaseAge: 1440 # só instala versões publicadas há pelo menos 24h
+trustPolicy: no-downgrade # falha se uma versão nova perde a provenance da anterior
+trustPolicyExclude: # exceções: versão sem provenance, revise antes de incluir
+  - why-is-node-running@3.2.2 # dependência do vitest
+blockExoticSubdeps: true # dependência transitiva não pode vir de git/tarball
+strictDepBuilds: true # script de build não aprovado falha o install (aprove com `pnpm approve-builds`)
+ignoredBuiltDependencies: # scripts de build revisados e recusados
+  - esbuild # postinstall só confere o binário, que vem da dependência opcional da plataforma

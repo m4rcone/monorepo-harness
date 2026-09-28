@@ -7,10 +7,11 @@ argument-hint: "[decisão-em-uma-frase]"
 
 Registre a decisão: $ARGUMENTS
 
-1. Liste `docs/decisions/` para obter o próximo número sequencial NNN
-2. Preencha o template em [template.md](template.md), conciso (máx. 1 página):
-   contexto, decisão, alternativas consideradas e por que foram rejeitadas, consequências
+1. NNN = maior número em `docs/decisions/NNN-*.md` + 1, com 3 dígitos (nenhum ADR ainda → `001`)
+2. Preencha o template [template.md](template.md), conciso (máx. 1 página): contexto, decisão,
+   alternativas consideradas e por que foram rejeitadas, consequências. Status `aceita`, data de hoje
 3. Salve como `docs/decisions/NNN-<slug>.md`
-4. Proponha a linha de UMA frase a adicionar no CLAUDE.md ou numa rule,
-   referenciando o ADR (o doc guarda o porquê; o CLAUDE.md guarda a regra) —
-   e ESPERE minha aprovação antes de editar o CLAUDE.md
+4. Se substitui um ADR anterior, mude o Status dele para `substituída por NNN`. Se a decisão é
+   estrutural, adicione o link em `docs/architecture.md` § Decisões estruturais em vigor
+5. Proponha a linha de UMA frase para o CLAUDE.md ou uma rule, citando o ADR (o ADR guarda o
+   porquê; o CLAUDE.md guarda a regra), e ESPERE minha aprovação antes de editar
