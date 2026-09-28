@@ -17,3 +17,4 @@ paths:
 - Skill: `argument-hint` SEMPRE entre aspas (`[a] [b]` sem aspas é YAML inválido e a skill não carrega). `disable-model-invocation: true` só em fluxo que o humano inicia: com ela o Claude não invoca a skill, nem a partir de outra skill
 - Regras de permissão estão escritas como `Bash(...)`. Se o tool PowerShell for ligado (`CLAUDE_CODE_USE_POWERSHELL_TOOL`), replique as de ask/deny como `PowerShell(...)`
 - Workflows com Claude são advisory; modelo sempre pelo ID completo, com `timeout-minutes` e `concurrency`
+- Job de workflow com Claude começa o `if` com `vars.CLAUDE_CI == 'true' &&` (opt-in; sem a variável o job fica skipped)
