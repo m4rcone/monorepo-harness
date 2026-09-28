@@ -1,6 +1,6 @@
-# CI determinístico: lint, typecheck, testes e build.
-# Princípio do harness: ESTE workflow é quem gateia merge. Os workflows com
-# Claude (claude.yml, claude-review.yml) são advisory e nunca bloqueiam.
+# CI determinístico: lint, formatação, hooks, typecheck, testes e build (`pnpm run check`).
+# ESTE workflow é o gate de merge: exija o check `checks` num ruleset da `main` (README, passo 8).
+# Os workflows com Claude (claude.yml, claude-code-review.yml) são advisory e nunca bloqueiam.
 name: CI
 
 on:
@@ -8,25 +8,32 @@ on:
     branches: [main]
   pull_request:
 
+# Menor privilégio: o CI só lê o repositório
+permissions:
+  contents: read
+
+# Push novo num PR cancela a execução anterior; na main, todo commit mantém seu resultado
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Lê a versão do pnpm do campo "packageManager" do package.json raiz
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
 
-      # Requer pnpm-lock.yaml comitado (rode `pnpm install` uma vez e comite o lockfile)
+      # Mudou dependência? Comite o pnpm-lock.yaml junto
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm run lint
-      - run: pnpm run typecheck
-      - run: pnpm run test
-      - run: pnpm run build
+      # Os mesmos passos que o dev e a skill `pr` rodam localmente
+      - run: pnpm run check

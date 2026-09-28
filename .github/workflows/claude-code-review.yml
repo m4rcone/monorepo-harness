@@ -1,51 +1,62 @@
 # Revisão automática de PR com Claude — ADVISORY (comenta, não bloqueia merge).
+# Usa o plugin oficial `code-review`: um comentário INLINE por achado, ou um resumo quando não há
+# nada. Ele lê o CLAUDE.md do repo e pula PRs fechados, triviais ou que já têm comentário do Claude
+# (inclusive a resposta a um @claude feito enquanto o PR era rascunho).
+# Mesmo nome de arquivo que o /install-github-app gera: o comando não cria um 2º workflow de review.
 #
-# Setup (uma vez): rode `/install-github-app` num terminal com Claude Code, ou
-# instale https://github.com/apps/claude manualmente e adicione o secret
-# ANTHROPIC_API_KEY em Settings → Secrets and variables → Actions.
+# Setup (uma vez): `/install-github-app` no Claude Code, ou instale https://github.com/apps/claude
+# e crie o secret ANTHROPIC_API_KEY em Settings → Secrets → Actions. Com assinatura Claude (secret
+# CLAUDE_CODE_OAUTH_TOKEN, gerado por `claude setup-token`), troque `anthropic_api_key:` por
+# `claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}` aqui e no claude.yml.
+# Alternativa sem workflow: Code Review gerenciado (code.claude.com/docs/en/code-review).
 #
-# Controles de custo (teto triplo): --max-turns + timeout-minutes + concurrency.
-# Modelo FIXADO pelo nome completo (aliases mudam com o tempo e quebram
-# reprodutibilidade de custo em CI).
-name: Claude PR Review
+# Custo: uma revisão por PR, timeout-minutes, concurrency, filtro de paths e o `if` do job.
+# Modelo FIXADO pelo ID completo: aliases mudam com o tempo e tiram a previsibilidade de custo.
+name: Claude Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
-    # Não gastar tokens com PRs que só tocam docs/config:
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - ".github/**"
+    # Sem `synchronize`: o plugin pularia o PR já revisado. Nova rodada? Peça ao @claude no PR.
+    types: [opened, ready_for_review, reopened]
+    # Só docs para humanos não disparam. CLAUDE.md, rules, skills, agents e workflows são
+    # revisados: são prompts e configuração de segurança.
+    paths:
+      - "**"
+      - "!docs/**"
+      - "!**/README.md"
 
-# Um review por PR por vez; push novo cancela o anterior
+# Um review por PR por vez
 concurrency:
   group: claude-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pull-requests: write # postar o comentário de review
-  issues: write
-
 jobs:
   review:
+    # Rascunho espera ficar pronto; PR de fork não recebe o secret; bots são rejeitados pela action
+    if: >-
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.type != 'Bot'
     runs-on: ubuntu-latest
     timeout-minutes: 15 # teto duro contra jobs fugitivos
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write # OIDC para o token do Claude GitHub App
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
-          fetch-depth: 0 # o review precisa do diff completo contra a base
+          fetch-depth: 1
 
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }} # NUNCA hardcode
-          prompt: |
-            Revise o diff deste PR contra o CLAUDE.md e as rules do repositório.
-            Reporte APENAS: bugs prováveis, problemas de segurança e violações
-            das convenções documentadas. Nada de estilo (o lint cuida disso).
-            Organize por prioridade (crítico/aviso/sugestão) com arquivo:linha.
-            Se não houver achados, diga isso em uma linha.
+          plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
+          plugins: "code-review@claude-code-plugins"
+          prompt: "/code-review:code-review --comment ${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
+          # --allowedTools é obrigatório: liga o servidor MCP de comentário inline; `gh pr comment`
+          # posta o resumo quando não há achados (no runner não há humano para aprovar prompts)
           claude_args: |
-            --model claude-sonnet-5
-            --max-turns 8
+            --model claude-sonnet-5-5
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment *)"
