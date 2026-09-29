@@ -2,7 +2,7 @@
   "name": "monorepo-harness",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.34.5",
+  "packageManager": "pnpm@11.27.1",
   "scripts": {
     "lint": "eslint .",
     "format": "prettier --write .",
