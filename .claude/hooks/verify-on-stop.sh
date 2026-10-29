@@ -1,11 +1,12 @@
 #!/bin/bash
 # verify-on-stop.sh — Stop
-# Torna determinístico o "rodar typecheck + testes antes de concluir" do CLAUDE.md: se ESTA
-# sessão editou .ts (marcador do check-ts), roda typecheck + testes relacionados (vitest --changed).
+# Torna determinístico o "antes de concluir" do CLAUDE.md: se ESTA sessão editou .ts (marcador do
+# check-ts), roda typecheck + testes relacionados (vitest --changed), os mesmos do `pnpm run verify`.
 # Falhou → exit 2: o Claude não encerra o turno e recebe o erro. Na nova tentativa
 # (stop_hook_active) o hook não roda, para não entrar em loop.
-# Só roda de novo quando o diff TS muda desde a última verificação, OK ou não (cache por sessão):
-# um erro que o Claude só deve relatar não bloqueia todo turno seguinte.
+# Só roda quando o diff TS mudou desde a última verificação: pula o diff que o `pnpm run verify`
+# (ou este hook) já aprovou e o que já falhou nesta sessão (cache por sessão): um erro que o
+# Claude só deve relatar não bloqueia todo turno seguinte.
 # Conveniência, não segurança: falha aberto (sem jq, sem dependências ou fora de um repo git).
 
 command -v jq >/dev/null 2>&1 || exit 0
@@ -22,38 +23,34 @@ CWD=$(echo "$INPUT" | jq -r '.cwd // empty')
 ROOT=$(git -C "${CWD:-$CLAUDE_PROJECT_DIR}" rev-parse --show-toplevel 2>/dev/null) || exit 0
 cd "$ROOT" || exit 0
 [ -x node_modules/.bin/tsc ] || exit 0
+. "$(dirname "$0")/lib/ts-diff.sh"
 
-# Arquivos TS alterados vs HEAD + TS novos (pathspec entre aspas: seguro com espaços no nome)
-TS=('*.ts' '*.tsx' '*.mts' '*.cts')
-CHANGED=$( { git diff --name-only HEAD -- "${TS[@]}" 2>/dev/null
-  git ls-files --others --exclude-standard -- "${TS[@]}"; })
-[ -z "$CHANGED" ] && exit 0
+[ -z "$(ts_changed)" ] && exit 0
 
-# Mesmo diff já verificado nesta sessão: pula
+# Diff já aprovado (pelo `pnpm run verify` ou por este hook) ou que já falhou nesta sessão: pula
+HASH=$(ts_diff_hash)
 STAMP="${TMPDIR:-/tmp}/claude-verify-$SESSION"
-HASH=$( { echo "$ROOT"
-  git diff HEAD -- "${TS[@]}" 2>/dev/null
-  git ls-files --others --exclude-standard -z -- "${TS[@]}" | xargs -0 cat 2>/dev/null; } \
-  | git hash-object --stdin)
-[ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$HASH" ] && exit 0
+for F in "$VERIFIED" "$STAMP"; do
+  [ -f "$F" ] && [ "$(cat "$F")" = "$HASH" ] && exit 0
+done
 
 FIX="Corrija o que veio das suas edições; se o erro está em código que você não tocou, apenas relate ao humano."
 
-fail() { # fail <título> <detalhes>: marca o diff como verificado e devolve o erro ao Claude
+fail() { # fail <título> <detalhes>: marca o diff como já reportado e devolve o erro ao Claude
   echo "$HASH" >"$STAMP"
   echo "$1 $FIX" >&2
   echo "$2" >&2
   exit 2
 }
 
-if ! OUT=$(pnpm run typecheck 2>&1); then
+if ! OUT=$("${VERIFY_TYPECHECK[@]}" 2>&1); then
   ERRS=$(echo "$OUT" | grep -E 'error TS|ERR_' | head -30)
   fail "Typecheck falhou." "${ERRS:-$(echo "$OUT" | tail -30)}"
 fi
 
-if ! OUT=$(pnpm exec vitest run --changed HEAD --passWithNoTests 2>&1); then
+if ! OUT=$("${VERIFY_TESTS[@]}" 2>&1); then
   fail "Testes relacionados às mudanças falharam." "$(echo "$OUT" | tail -40)"
 fi
 
-echo "$HASH" >"$STAMP"
+mark_verified
 exit 0

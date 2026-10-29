@@ -16,6 +16,7 @@ Monorepo pnpm com `apps/api` (backend Node/TS) e `apps/web` (frontend TS).
 
 - Instalar: `pnpm install` (sempre pnpm; pede aprovação)
 - Testes: um arquivo `pnpm vitest run <arquivo>` · um pacote `pnpm vitest run --project @app/api` · tudo `pnpm run test`
+- Typecheck + testes afetados pelo diff: `pnpm run verify`
 - Typecheck: `pnpm run typecheck` · Lint: `pnpm run lint` · Formatar: `pnpm run format` · Build: `pnpm run build`
 - Tudo o que o CI roda: `pnpm run check`
 - Mudou algo em `.claude/hooks/`: `pnpm run test:hooks`
@@ -30,7 +31,7 @@ Monorepo pnpm com `apps/api` (backend Node/TS) e `apps/web` (frontend TS).
 
 - Tarefa não trivial: plan mode antes de implementar. Feature grande: sugira ao humano `/spec` e implementar numa sessão nova
 - Bug: primeiro um teste que falha reproduzindo-o, depois a correção na causa raiz
-- Antes de concluir: rode typecheck + testes do escopo alterado e mostre a saída. O hook `Stop` repete a checagem, mas só bloqueia o 1º encerramento com erro: corrija e confirme você mesmo, sem contornar
+- Antes de concluir: `pnpm run verify` e mostre a saída. O hook `Stop` pula o diff que ele aprovou; diff novo, roda a mesma checagem e só bloqueia o 1º encerramento com erro: corrija e confirme você mesmo, sem contornar
 - Antes de commitar: revise com o subagent `code-reviewer` (convenções); o humano também pode rodar `/code-review` (bugs)
 - Commit com a skill `commit` (Conventional Commits, nunca na `main`); PR com a skill `pr`. Push e PR pedem aprovação
 

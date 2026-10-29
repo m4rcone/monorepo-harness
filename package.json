@@ -9,6 +9,7 @@
     "format:check": "prettier --check .",
     "typecheck": "tsc -p tsconfig.json && pnpm -r --no-bail run typecheck",
     "test": "vitest run",
+    "verify": "bash scripts/verify.sh",
     "build": "pnpm -r run build",
     "test:hooks": "bash scripts/test-hooks.sh",
     "check": "pnpm run lint && pnpm run format:check && pnpm run test:hooks && pnpm run typecheck && pnpm run test && pnpm run build"

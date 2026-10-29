@@ -17,7 +17,8 @@ PROBE="$ROOT/apps/api/src/__hooktest__.ts"
 LINT_PROBE="$ROOT/apps/api/src/__hooktest_lint__.ts"
 OUT_PROBE="$ROOT/apps/api/__hooktest_fora__.ts"
 ROOT_PROBE="$ROOT/scripts/__hooktest__.ts"
-trap 'rm -rf "$TMP"; rm -f "$PROBE" "$LINT_PROBE" "$OUT_PROBE" "$ROOT_PROBE"' EXIT
+VERIFIED="$ROOT/node_modules/.cache/claude-verified" # aprovação do `pnpm run verify` (fica no repo)
+trap 'rm -rf "$TMP"; rm -f "$PROBE" "$LINT_PROBE" "$OUT_PROBE" "$ROOT_PROBE" "$VERIFIED"' EXIT
 trap 'exit 130' INT TERM
 
 check() { # check <esperado> <obtido> <descrição>
@@ -141,6 +142,9 @@ if [ -x "$ROOT/node_modules/.bin/tsc" ]; then
   grep -q TS2322 "$TMP/stderr"; check 0 "$?" "o erro TS volta ao Claude"
   stop "com-erro" "$TMP/stub" # pnpm falso: com o cache funcionando, o hook nem o chama
   check 0 "$?" "mesmo diff com erro não bloqueia de novo (cache)"
+  rm -f "$VERIFIED"
+  (cd "$ROOT" && bash scripts/verify.sh >/dev/null 2>&1)
+  [ "$?" -ne 0 ] && [ ! -f "$VERIFIED" ]; check 0 "$?" "pnpm run verify com erro falha e não aprova o diff"
   rm -f "$PROBE"
 
   # Os casos abaixo dependem do working tree real passar no typecheck
@@ -151,6 +155,17 @@ if [ -x "$ROOT/node_modules/.bin/tsc" ]; then
     check 0 "$?" "código válido encerra"
     stop "ok" "$TMP/stub"
     check 0 "$?" "mesmo diff OK não roda de novo (cache)"
+
+    # O Claude rodou `pnpm run verify` antes de concluir: o hook não repete a checagem
+    echo 'export const y = 2;' >>"$PROBE"
+    (cd "$ROOT" && bash scripts/verify.sh >/dev/null 2>&1)
+    check 0 "$?" "pnpm run verify passa com código válido"
+    : >"$TMP/claude-edited-verify"
+    stop "verify" "$TMP/stub"
+    check 0 "$?" "diff aprovado pelo pnpm run verify não roda de novo"
+    echo 'export const z = 3;' >>"$PROBE"
+    stop "verify" "$TMP/stub" # diff mudou: o hook roda e o pnpm falso falha
+    check 2 "$?" "diff alterado depois do verify roda de novo"
     rm -f "$PROBE"
   else
     echo "  (pulado 'código válido': o working tree já falha no typecheck; o CI é a referência)"
