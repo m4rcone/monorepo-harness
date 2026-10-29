@@ -55,10 +55,11 @@ Inicie as sessões sempre na raiz: `settings.json` e hooks não são herdados de
 **Hooks**: `session-start` avisa (só quando há problema) sobre `jq`, `typescript-language-server`
 (fora do CI), dependências e sessão na `main` · `protect-files` bloqueia edição de `.env*`, `pnpm-lock.yaml` e `.git/` · `guard-bash`
 bloqueia `rm -r` amplo, `curl | sh`, descarte de trabalho (`checkout .`, `reset --hard`, `clean -f`,
-`stash drop`) e commit na `main` · `check-ts` roda ESLint `--fix` + Prettier no arquivo editado ·
-`verify-on-stop` roda typecheck + `vitest --changed` (o mesmo que `pnpm run verify`) se a sessão
-editou `.ts` e o diff ainda não foi aprovado, e bloqueia o 1º encerramento com erro. Os de
-segurança falham fechado sem `jq`; os de conveniência, aberto.
+`stash drop`) e commit na `main` · `check-ts` roda ESLint `--fix` (sem `no-unused-vars`, que
+acusaria a edição pela metade) + Prettier no arquivo editado · `verify-on-stop` roda typecheck +
+`vitest --changed` (o mesmo que `pnpm run verify`) se a sessão editou `.ts` e o diff ainda não
+foi aprovado, e bloqueia o 1º encerramento com erro. Os de segurança falham fechado sem `jq`; os
+de conveniência, aberto.
 
 ## Fluxo de trabalho
 

@@ -29,11 +29,13 @@ BIN=node_modules/.bin
 
 case "$FILE" in
   *.ts|*.tsx|*.mts|*.cts|*.js|*.jsx|*.mjs|*.cjs)
-    OUT=$("$BIN/eslint" --fix "$FILE" 2>&1)
+    # Sem no-unused-vars: entre um Edit e outro (import antes do uso) o código está incompleto de
+    # propósito. O `pnpm run lint` (no check e no CI) cobre a regra.
+    OUT=$("$BIN/eslint" --fix --rule 'no-unused-vars: off' --rule '@typescript-eslint/no-unused-vars: off' "$FILE" 2>&1)
     RC=$?
     "$BIN/prettier" --write "$FILE" >/dev/null 2>&1 # por último: formata também o que o --fix reescreveu
     if [ "$RC" -ne 0 ]; then
-      echo "ESLint falhou em $FILE (corrija antes de prosseguir):" >&2
+      echo "ESLint falhou em $FILE (corrija antes de concluir):" >&2
       echo "$OUT" >&2
       exit 2
     fi

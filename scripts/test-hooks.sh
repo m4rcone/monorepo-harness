@@ -172,10 +172,15 @@ if [ -x "$ROOT/node_modules/.bin/tsc" ]; then
   fi
 
   echo "check-ts"
-  echo 'const naoUsada = 1;' >"$LINT_PROBE"
-  jq -nc --arg f "$LINT_PROBE" '{session_id:"lint", tool_input:{file_path:$f}}' | "$H/check-ts.sh" >/dev/null 2>&1
-  check 2 "$?" "erro de ESLint volta ao Claude"
+  lint() { # lint <esperado> <conteúdo> <descrição>
+    printf '%s\n' "$2" >"$LINT_PROBE"
+    jq -nc --arg f "$LINT_PROBE" '{session_id:"lint", tool_input:{file_path:$f}}' | "$H/check-ts.sh" >/dev/null 2>&1
+    check "$1" "$?" "$3"
+  }
+  lint 2 'export function semTipo() { return 1; }' "erro de ESLint volta ao Claude"
   [ -f "$TMP/claude-edited-lint" ]; check 0 "$?" "marca a sessão que editou .ts"
+  lint 0 'import { readFileSync } from "node:fs";' "import ainda não usado (edição pela metade) não volta como erro"
+  lint 0 'const naoUsada = 1;' "variável ainda não usada não volta como erro"
   rm -f "$LINT_PROBE"
   # Fora do `include` de src/tests: o ESLint com type info não pode falhar no parse
   for f in "$OUT_PROBE" "$ROOT_PROBE"; do
