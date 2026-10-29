@@ -12,5 +12,5 @@ Corrija a issue #$ARGUMENTS:
 3. Escreva um teste que REPRODUZ o problema e mostre que ele falha
 4. Corrija na causa raiz, não no sintoma
 5. Rode o teste + `pnpm run verify` e MOSTRE a saída
-6. Revise com o subagent `code-reviewer` e corrija os achados críticos
-7. Use a skill `commit` (corpo com `Closes #$ARGUMENTS`) e depois a skill `pr` com `#$ARGUMENTS`
+6. Use a skill `commit` (corpo com `Closes #$ARGUMENTS`) e depois a skill `pr` com `#$ARGUMENTS`
+   (ela revisa a branch com o subagent `code-reviewer`)

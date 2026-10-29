@@ -46,7 +46,7 @@ Inicie as sessões sempre na raiz: `settings.json` e hooks não são herdados de
 | `.claude/settings.json`           | Permissões (allow/ask/deny), sandbox e hooks. Ajustes pessoais: `settings.local.json` (gitignored).        |
 | `.claude/hooks/`                  | O que precisa acontecer sempre (abaixo). Cada script explica a si mesmo no cabeçalho.                      |
 | `.claude/skills/`                 | `/foundation`, `/spec`, `/adr`, `/fix-issue` (só você inicia); `/commit`, `/pr` (você ou o Claude).        |
-| `.claude/agents/code-reviewer.md` | Revisor de convenções em contexto isolado (`@agent-code-reviewer`); complementa o `/code-review` (bugs).   |
+| `.claude/agents/code-reviewer.md` | Revisor de convenções em contexto isolado, no `/pr` ou `@agent-code-reviewer`. Bugs: `/code-review`.       |
 | `docs/`                           | `architecture.md` (vivo), `decisions/` (ADRs), `specs/`. Referenciados por caminho, nunca `@`-importados.  |
 | `.github/`                        | `ci.yml` (gate de merge, sem Claude), `claude-code-review.yml` e `claude.yml` (advisory), `dependabot.yml` |
 | `.devcontainer/`                  | Ambiente padronizado, opcional. Não é isolamento: para `--dangerously-skip-permissions`, use o oficial.    |
@@ -65,9 +65,10 @@ segurança falham fechado sem `jq`; os de conveniência, aberto.
 1. **Planejar**: plan mode (Shift+Tab). Feature grande: `/spec`, que entrega a branch e o prompt
    para implementar numa sessão nova (`/clear`).
 2. **Implementar**: hooks e convenções trabalham no fundo.
-3. **Revisar**: `/code-review` (bugs) e `@agent-code-reviewer` (convenções; sugere candidatos a regra).
-4. **Entregar**: `/commit` → `/pr` (roda `pnpm run check`, faz push, abre o PR e acompanha o CI).
-   Commit, push e PR sempre pedem aprovação.
+3. **Revisar**: `/code-review` (bugs). O `code-reviewer` (convenções; sugere candidatos a regra)
+   roda no `/pr`; para antes, `@agent-code-reviewer`.
+4. **Entregar**: `/commit` → `/pr` (roda `pnpm run check` e o `code-reviewer`, faz push, abre o PR
+   e acompanha o CI). Commit, push e PR sempre pedem aprovação.
 
 ## Segurança em camadas
 

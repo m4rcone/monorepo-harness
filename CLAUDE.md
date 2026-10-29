@@ -32,8 +32,7 @@ Monorepo pnpm com `apps/api` (backend Node/TS) e `apps/web` (frontend TS).
 - Tarefa não trivial: plan mode antes de implementar. Feature grande: sugira ao humano `/spec` e implementar numa sessão nova
 - Bug: primeiro um teste que falha reproduzindo-o, depois a correção na causa raiz
 - Antes de concluir: `pnpm run verify` e mostre a saída. O hook `Stop` pula o diff que ele aprovou; diff novo, roda a mesma checagem e só bloqueia o 1º encerramento com erro: corrija e confirme você mesmo, sem contornar
-- Antes de commitar: revise com o subagent `code-reviewer` (convenções); o humano também pode rodar `/code-review` (bugs)
-- Commit com a skill `commit` (Conventional Commits, nunca na `main`); PR com a skill `pr`. Push e PR pedem aprovação
+- Commit com a skill `commit` (Conventional Commits, nunca na `main`); PR com a skill `pr`, que antes revisa a branch com o subagent `code-reviewer` (convenções). O humano também pode rodar `/code-review` (bugs). Push e PR pedem aprovação
 
 ## Gotchas
 
