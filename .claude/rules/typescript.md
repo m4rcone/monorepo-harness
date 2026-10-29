@@ -7,9 +7,8 @@ paths:
 # Regras TypeScript
 
 <!-- Carrega quando o Claude trabalha em arquivos .ts/.tsx. ADAPTE aos seus padrões.
-     `import type` não está aqui: o ESLint (consistent-type-imports, com --fix no hook) e o
-     verbatimModuleSyntax do tsconfig já o garantem. -->
+     Fora daqui porque o ESLint já garante (com --fix no hook): `import type`, tipo de retorno
+     explícito em exports, `throw` de algo que não é Error e promise sem `await`. -->
 
-- Erros: lance subclasses de `Error` com nome próprio; nunca `throw` de string
-- Funções exportadas: tipo de retorno explícito
+- Erros: lance subclasses de `Error` com nome próprio
 - Preferir `unknown` a `any` em fronteiras de dados; validar antes de estreitar

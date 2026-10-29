@@ -2,8 +2,9 @@
 # guard-bash.sh — PreToolUse (matcher: Bash|Monitor|PowerShell, os tools que executam shell)
 # Defesa em profundidade contra comandos destrutivos cometidos por engano. Hooks rodam antes da
 # checagem de modo de permissão: bloqueia inclusive em bypassPermissions. Não é fronteira contra
-# entrada maliciosa (essa é o sandbox + permissões). O deny do settings.json cobre curl/wget e
-# `git push --force|-f`; aqui ficam padrões que regras de prefixo não capturam.
+# entrada maliciosa (essa é o sandbox + permissões). O deny do settings.json cobre curl/wget
+# e `git push --force|-f` na forma direta; aqui ficam padrões que regras de prefixo não capturam
+# (caminho absoluto, wrappers, `bash -c '...'`).
 # exit 2 + stderr = bloqueado (a mensagem volta ao Claude). AJUSTE os padrões ao projeto.
 # Requer: jq
 
@@ -28,8 +29,8 @@ C=$(printf '%s' "$CMD" | tr '\n' ' ' \
   | sed -E "s/(^|[[:space:]])(-[a-zA-Z]*m|--message|--body|--title)(=|[[:space:]]+)(\"([^\"\\\\]|\\\\.)*\"|'[^']*')/\\1/g")
 # `git` com opções globais antes do subcomando (-C <dir>, -c <k=v>, --no-pager, -p...)
 G='git([[:space:]]+(-[Cc][[:space:]]*("[^"]*"|'"'"'[^'"'"']*'"'"'|[^[:space:]]+)|--[a-z][a-z-]*(=[^[:space:]]+)?|-[pP]))*[[:space:]]+'
-# Fim de um argumento: espaço, separador, fecha-parêntese, aspas/backtick ou fim da linha
-END="([[:space:];&|)\`'\"]|$)"
+# Fim de um argumento: espaço, separador, fecha-parêntese, aspas/backtick, redirecionamento ou fim da linha
+END="([[:space:];&|)\`'\"<>]|$)"
 
 # 1) remoção recursiva em alvo amplo (/, ~, $HOME, $PWD, ., .., .git, *), segmento a segmento
 #    (assim `rm -rf dist && cd ..` não é falso positivo). Inclui Remove-Item do PowerShell.
@@ -45,8 +46,11 @@ while IFS= read -r SEG; do
   fi
 done <<< "$(echo "$C" | tr ';&|' '\n\n\n')"
 
-# 2) download canalizado direto para um interpretador (curl ... | [sudo] sh/python/node...)
-if echo "$CMD" | grep -qE '(curl|wget)[^|]*\|[[:space:]]*(sudo[[:space:]]+)?((ba|z|da|k)?sh|python[0-9.]*|node|perl|ruby)([[:space:]]|$)'; then
+# 2) download canalizado direto para um interpretador (curl ... | [sudo -E] [env -i VAR=1] [/caminho/]sh...)
+P='([^[:space:]|;&]*/)?' # caminho opcional (/bin/sh, /usr/bin/env)
+SUDO='sudo([[:space:]]+-[^[:space:]]+)*[[:space:]]+' # `sudo -E bash` é a instalação da NodeSource
+ENV="${P}env([[:space:]]+(-[^[:space:]]+|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*))*[[:space:]]+"
+if echo "$CMD" | grep -qE "(curl|wget)[^|]*\|[[:space:]]*(${SUDO})?(${ENV})?${P}((ba|z|da|k)?sh|python[0-9.]*|node|perl|ruby)${END}"; then
   block "download canalizado para interpretador"
 fi
 

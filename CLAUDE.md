@@ -1,7 +1,7 @@
 <!--
   GUIA DE MANUTENÇÃO (comentários HTML são removidos antes de entrar no contexto: custo zero de tokens):
   - Para cada linha pergunte: "remover isto faria o Claude errar?" Se não, corte. Alvo: ≤200 linhas.
-  - Procedimento multi-passo → skill em .claude/skills/. Regra de um subdiretório → .claude/rules/ com paths:.
+  - Procedimento multi-passo → skill em .claude/skills/. Convenção de um pacote → CLAUDE.md do pacote; transversal por glob → .claude/rules/ com paths:.
   - Algo que DEVE acontecer sempre → hook (.claude/hooks/) ou lint, não instrução aqui.
   - Referencie docs por caminho em texto puro. `@caminho` importaria o arquivo inteiro em TODA sessão.
 -->
@@ -14,9 +14,9 @@ Monorepo pnpm com `apps/api` (backend Node/TS) e `apps/web` (frontend TS).
 
 ## Comandos
 
-- Instalar: `pnpm install` (SEMPRE pnpm; pede aprovação)
+- Instalar: `pnpm install` (sempre pnpm; pede aprovação)
 - Testes: um arquivo `pnpm vitest run <arquivo>` · um pacote `pnpm vitest run --project @app/api` · tudo `pnpm run test`
-- Typecheck: `pnpm run typecheck` · Lint: `pnpm run lint` · Formatar: `pnpm run format`
+- Typecheck: `pnpm run typecheck` · Lint: `pnpm run lint` · Formatar: `pnpm run format` · Build: `pnpm run build`
 - Tudo o que o CI roda: `pnpm run check`
 - Mudou algo em `.claude/hooks/`: `pnpm run test:hooks`
 
@@ -24,19 +24,19 @@ Monorepo pnpm com `apps/api` (backend Node/TS) e `apps/web` (frontend TS).
 
 - ES Modules apenas (`import`/`export`); nunca `require`
 - TypeScript strict; sem `any` sem comentário justificando
-- Convenções por área ficam em `.claude/rules/` e carregam por caminho: não as repita aqui
+- Convenções de um pacote ficam no `CLAUDE.md` dele; as transversais (TS, testes, harness), em `.claude/rules/`. Ambos carregam sob demanda: não as repita aqui
 
 ## Workflow
 
 - Tarefa não trivial: plan mode antes de implementar. Feature grande: sugira ao humano `/spec` e implementar numa sessão nova
 - Bug: primeiro um teste que falha reproduzindo-o, depois a correção na causa raiz
-- Antes de concluir: rode typecheck + testes do escopo alterado e MOSTRE a saída. O hook `Stop` repete a checagem, mas só bloqueia o 1º encerramento com erro: corrija e confirme você mesmo, sem contornar
+- Antes de concluir: rode typecheck + testes do escopo alterado e mostre a saída. O hook `Stop` repete a checagem, mas só bloqueia o 1º encerramento com erro: corrija e confirme você mesmo, sem contornar
 - Antes de commitar: revise com o subagent `code-reviewer` (convenções); o humano também pode rodar `/code-review` (bugs)
 - Commit com a skill `commit` (Conventional Commits, nunca na `main`); PR com a skill `pr`. Push e PR pedem aprovação
 
 ## Gotchas
 
-- Bash roda em sandbox (rede: domínios de `sandbox.network`; escrita: o projeto). Negou algo que a tarefa não pede? Não tente de novo sem sandbox: avise o humano (ele ajusta via `/sandbox`)
+- Bash roda em sandbox (rede: domínios de `sandbox.network`; escrita: o projeto). Modo estrito: não há como rodar fora dele (exceto `gh`). Negou algo que a tarefa precisa? Avise o humano: ele ajusta via `/sandbox` ou roda com `!`
 - `EPERM` ao escrever em `.claude/` via Bash (inclusive `git checkout`/`stash`) é proteção nativa do sandbox: use Edit/Write ou peça ao humano
 - `gh` só roda fora do sandbox (onde o TLS funciona no macOS) quando é o comando inteiro: sem pipe, `&&`, heredoc ou `$(...)`. Filtre com `--json`/`--jq` do próprio gh. Liberados: `gh issue|pr view|list`, `gh pr diff|checks`, `gh run list|view`; o resto pede aprovação
 - Hook bloqueou (`guard-bash`, `protect-files`)? A regra é intencional: não reformule o comando para escapar dela; explique ao humano e peça que ele execute
@@ -47,7 +47,7 @@ Monorepo pnpm com `apps/api` (backend Node/TS) e `apps/web` (frontend TS).
 <!-- ADAPTE: env vars obrigatórias, portas, peculiaridades de build/CI. Exemplo: -->
 <!-- - Testes de integração precisam de `DATABASE_URL`: exporte-a no shell que inicia o `claude` (o sandbox não lê `.env*`) -->
 
-## Referências (ler sob demanda; NÃO importar com @)
+## Referências (ler sob demanda; não importar com @)
 
 - Arquitetura: `docs/architecture.md`
 - Decisões (ADRs): `docs/decisions/` · Specs de features: `docs/specs/`

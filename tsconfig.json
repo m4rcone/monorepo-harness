@@ -1,5 +1,6 @@
 {
   // Typecheck dos arquivos de config da raiz (os pacotes têm o próprio tsconfig)
   "extends": "./tsconfig.base.json",
-  "include": ["*.config.ts"]
+  // Todo .ts da raiz e de scripts/: o ESLint com type info falha em .ts fora de um `include`
+  "include": ["*.ts", "scripts"]
 }

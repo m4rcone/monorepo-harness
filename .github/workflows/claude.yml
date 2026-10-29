@@ -53,20 +53,20 @@ jobs:
           [ "$FORK" = "false" ] || { echo "PR de fork: o @claude não roda código de fork com secrets."; exit 1; }
 
       # Em PR, parte do head do PR: as dependências instaladas batem com o lockfile dele
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           ref: ${{ github.event.pull_request.head.sha || (github.event.issue.pull_request && format('refs/pull/{0}/head', github.event.issue.number)) || '' }}
 
       # Dependências instaladas: o Claude roda lint/typecheck/testes antes de entregar
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      - uses: anthropics/claude-code-action@v1
+      - uses: anthropics/claude-code-action@d70510b174a1244958df0b03166a54912811f3e6 # v1.0.264
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # Commits pela API do GitHub: o `ask` de git commit/push do settings.json vale no runner

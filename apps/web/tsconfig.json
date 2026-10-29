@@ -4,5 +4,7 @@
     // ADAPTE ao framework: ex. Vite → "types": ["vite/client"]; JSX → "jsx": "react-jsx"
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src", "tests", "*.config.ts"]
+  // O pacote inteiro (scripts/ etc.): o ESLint com type info falha em .ts fora de um `include`
+  "include": ["**/*"],
+  "exclude": ["dist"]
 }

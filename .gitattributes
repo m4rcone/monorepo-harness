@@ -1,0 +1,3 @@
+# LF em tudo: um checkout com CRLF (Windows sem WSL, autocrlf=true) quebra os hooks .sh com
+# "bad interpreter" e faz o Prettier reformatar o repo inteiro
+* text=auto eol=lf

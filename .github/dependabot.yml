@@ -2,6 +2,7 @@
 # minimumReleaseAge do pnpm-workspace.yaml: versão com menos de 1 dia não é proposta.
 version: 2
 updates:
+  # Actions fixadas por SHA (tag é mutável): o dependabot atualiza o SHA e o comentário `# vX.Y.Z` juntos
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
@@ -15,7 +16,8 @@ updates:
     groups:
       npm: { patterns: ["*"] }
     ignore:
-      # O typescript-eslint limita o TypeScript (hoje <6.1): suba à mão quando ele aceitar
+      # O typescript-eslint limita o TypeScript (hoje <6.1): suba à mão quando ele aceitar, junto
+      # com o global do .devcontainer/Dockerfile (o dependabot não vê `npm install -g`)
       - dependency-name: typescript
         update-types: ["version-update:semver-minor", "version-update:semver-major"]
       # @types/node acompanha o major do runtime (.nvmrc, engines, Dockerfile): suba junto com o Node
