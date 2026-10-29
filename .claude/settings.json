@@ -36,7 +36,6 @@
       "WebFetch(domain:eslint.org)"
     ],
     "ask": [
-      "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(git branch -D *)",
       "Bash(gh pr create *)",

@@ -4,7 +4,8 @@ description: Cria commit(s) em Conventional Commits das mudanças atuais, numa b
 ---
 
 <!-- Sem disable-model-invocation de propósito: /fix-issue e o próprio Claude usam esta skill.
-     O humano continua no controle: todo `git commit` pede aprovação (regra ask do settings.json). -->
+     Commit é local e desfazível, por isso não pede aprovação: o humano aprova push e PR (regras ask
+     do settings.json), e o CLAUDE.md limita quando commitar. -->
 
 1. `git branch --show-current`: se estiver na `main`, crie antes uma branch `tipo/descricao-curta`
    (`git checkout -b ...`), num comando separado; o guard-bash bloqueia commit na `main`

@@ -69,7 +69,7 @@ de conveniência, aberto.
 3. **Revisar**: `/code-review` (bugs). O `code-reviewer` (convenções; sugere candidatos a regra)
    roda no `/pr`; para antes, `@agent-code-reviewer`.
 4. **Entregar**: `/commit` → `/pr` (roda `pnpm run check` e o `code-reviewer`, faz push, abre o PR
-   e acompanha o CI). Commit, push e PR sempre pedem aprovação.
+   e acompanha o CI). Push e PR sempre pedem aprovação; commit não, por ser local e desfazível.
 
 ## Segurança em camadas
 

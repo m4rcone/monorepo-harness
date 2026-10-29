@@ -69,8 +69,8 @@ jobs:
       - uses: anthropics/claude-code-action@d70510b174a1244958df0b03166a54912811f3e6 # v1.0.264
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Commits pela API do GitHub: o `ask` de git commit/push do settings.json vale no runner
-          # e, sem humano para aprovar, bloquearia o git via Bash
+          # Commits pela API do GitHub: o `ask` de git push do settings.json vale no runner
+          # e, sem humano para aprovar, bloquearia o push via Bash
           use_commit_signing: true
           claude_args: |
             --model claude-sonnet-5-5
