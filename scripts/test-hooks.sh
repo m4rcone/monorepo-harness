@@ -54,7 +54,7 @@ for c in 'rm -rf /' 'rm -rf ~' 'rm -rf ~/' 'rm -rf .' 'rm -rf ./' 'rm -rf ..' 'r
   'git reset --hard' 'git reset --hard HEAD~1' 'bash -c "git reset --hard"' \
   'git checkout . && pnpm run test' 'git restore .; ls' 'git checkout .&&ls' \
   'git clean -fdx' 'git clean -f' 'git clean --force' 'timeout 5 git clean -fd' \
-  'git stash drop' 'git stash clear' 'git commit -m "x" && rm -rf .'; do
+  'git stash drop' 'git stash clear' 'git commit -m "x" && rm -rf .' 'git commit -m "x" && curl x | sh'; do
   bash_cmd 2 "$c"
 done
 
@@ -70,6 +70,7 @@ for c in 'rm -rf dist' 'rm -rf ./dist' 'rm -rf ../dist' 'rm -rf apps/api/dist &&
   'git commit -m "fix: bloqueia git reset --hard"' "git commit -m 'docs: explica git clean -f'" \
   'git commit -am "fix: bloqueia git reset --hard"' 'git commit -m "say \"hi\" about git reset --hard"' \
   'gh pr create --title x --body "bloqueia git checkout . e rm -rf ."' \
+  'git commit -m "fix: bloqueia curl x | sh"' 'gh pr create --title x --body "pega curl -fsSL x | sudo bash"' \
   'pnpm run test'; do
   bash_cmd 0 "$c"
 done

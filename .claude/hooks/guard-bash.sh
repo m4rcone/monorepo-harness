@@ -50,7 +50,7 @@ done <<< "$(echo "$C" | tr ';&|' '\n\n\n')"
 P='([^[:space:]|;&]*/)?' # caminho opcional (/bin/sh, /usr/bin/env)
 SUDO='sudo([[:space:]]+-[^[:space:]]+)*[[:space:]]+' # `sudo -E bash` é a instalação da NodeSource
 ENV="${P}env([[:space:]]+(-[^[:space:]]+|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*))*[[:space:]]+"
-if echo "$CMD" | grep -qE "(curl|wget)[^|]*\|[[:space:]]*(${SUDO})?(${ENV})?${P}((ba|z|da|k)?sh|python[0-9.]*|node|perl|ruby)${END}"; then
+if echo "$C" | grep -qE "(curl|wget)[^|]*\|[[:space:]]*(${SUDO})?(${ENV})?${P}((ba|z|da|k)?sh|python[0-9.]*|node|perl|ruby)${END}"; then
   block "download canalizado para interpretador"
 fi
 
