@@ -10,7 +10,8 @@ description: Cria commit(s) em Conventional Commits das mudanças atuais, numa b
    (`git checkout -b ...`), num comando separado; o guard-bash bloqueia commit na `main`
 2. `git status` e `git diff` (inclusive `--staged`) para entender o escopo; arquivos novos (`??`) contam
 3. Um commit por intenção: agrupe as mudanças relacionadas e adicione com `git add <arquivos>`
-   (nunca `git add -p`, que é interativo)
+   (nunca `git add -p`, que é interativo e trava; para commitar só parte de um arquivo, gere o
+   patch com os trechos certos e use `git apply --cached <patch>`)
 4. Mensagem `tipo(escopo): resumo` no imperativo, até 72 caracteres
    - Tipos: `feat|fix|refactor|perf|test|docs|build|ci|chore`
    - Escopo: o pacote (`api`, `web`) ou a área (`harness`) quando a mudança é local a ele
