@@ -31,7 +31,7 @@ Ao final:
 3. Proponha a adaptação do scaffold como uma lista de mudanças por arquivo e ESPERE minha aprovação
    antes de aplicar:
    - cada placeholder de `git grep -n ADAPTE` e o `name` do `package.json` raiz (JSON não aceita o marcador)
-   - encaixe não usado (ex.: sem frontend) → remover `apps/web/` e `.claude/rules/web.md` e atualizar
+   - encaixe não usado (ex.: sem frontend) → remover `apps/web/` e atualizar
      cada menção de `git grep -n apps/web` (CLAUDE.md, README)
    - dependências do framework via `pnpm add` (pede aprovação), scripts `dev` e `docs/architecture.md`
      com link para o ADR

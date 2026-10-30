@@ -11,6 +11,10 @@ RUN apt-get update \
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 RUN corepack enable pnpm
 
+# Language server do plugin typescript-lsp (enabledPlugins no .claude/settings.json). Ele usa o
+# TypeScript do workspace; o global é só fallback. Mantenha o major do typescript igual ao do projeto
+RUN npm install -g typescript-language-server@6.0.2 typescript@6.0.3
+
 # Em Docker sem privilégios o bubblewrap não monta um /proc novo e todo Bash sandboxed falha.
 # enableWeakerNestedSandbox reaproveita o /proc do container, que passa a ser a fronteira de
 # isolamento. /etc/claude-code/managed-settings.json é o caminho das managed settings no Linux.

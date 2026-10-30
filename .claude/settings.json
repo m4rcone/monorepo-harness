@@ -1,7 +1,13 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
+  },
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(pnpm run *)",
       "Bash(pnpm vitest *)",
@@ -30,7 +36,6 @@
       "WebFetch(domain:eslint.org)"
     ],
     "ask": [
-      "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(git branch -D *)",
       "Bash(gh pr create *)",
@@ -106,6 +111,7 @@
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
     "excludedCommands": ["gh *"],
     "filesystem": {
       "allowWrite": [

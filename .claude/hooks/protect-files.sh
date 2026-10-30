@@ -2,6 +2,8 @@
 # protect-files.sh — PreToolUse (matcher: Edit|Write)
 # Bloqueia edição/criação de arquivos protegidos. Camada determinística que complementa
 # o deny do settings.json (que também bloqueia a leitura).
+# Por que hook e não `deny: Edit(...)`: o sandbox converte deny de Edit em bloqueio de escrita
+# para o Bash também, e aí o `pnpm install` não grava o lockfile e o `git` não grava em .git/.
 # exit 2 + stderr = bloqueado (a mensagem volta ao Claude). Requer: jq
 
 # Sem jq este hook não consegue inspecionar a ação: falha FECHADO por segurança.

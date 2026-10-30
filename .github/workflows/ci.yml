@@ -1,5 +1,5 @@
 # CI determinístico: lint, formatação, hooks, typecheck, testes e build (`pnpm run check`).
-# ESTE workflow é o gate de merge: exija o check `checks` num ruleset da `main` (README, passo 8).
+# ESTE workflow é o gate de merge: exija o check `checks` num ruleset da `main` (README, "Proteja a `main`").
 # Os workflows com Claude (claude.yml, claude-code-review.yml) são advisory e nunca bloqueiam.
 name: CI
 
@@ -22,12 +22,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Nada aqui faz push: sem o GITHUB_TOKEN no .git/config, código de dependência ou de teste
+          # não tem como lê-lo
+          persist-credentials: false
 
       # Lê a versão do pnpm do campo "packageManager" do package.json raiz
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
           cache: pnpm

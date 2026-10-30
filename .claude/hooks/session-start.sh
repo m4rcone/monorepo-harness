@@ -12,6 +12,9 @@ WARN=()
 
 command -v jq >/dev/null 2>&1 \
   || WARN+=("jq ausente: os hooks guard-bash/protect-files vão BLOQUEAR Bash e edições até o humano instalar (brew install jq | apt-get install jq).")
+# No CI (GitHub Actions define CI=true) não há humano para instalar: o aviso só gastaria tokens
+[ -n "${CI:-}" ] || command -v typescript-language-server >/dev/null 2>&1 \
+  || WARN+=("typescript-language-server ausente: o plugin typescript-lsp fica sem diagnósticos nem navegação. Peça ao humano: npm install -g typescript-language-server typescript (e reiniciar a sessão).")
 [ -x node_modules/.bin/tsc ] \
   || WARN+=("Dependências não instaladas em $ROOT: rode 'pnpm install' (pede aprovação; até lá, os hooks de lint e verificação ficam inativos).")
 

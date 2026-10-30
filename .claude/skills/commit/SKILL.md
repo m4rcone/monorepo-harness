@@ -4,13 +4,15 @@ description: Cria commit(s) em Conventional Commits das mudanças atuais, numa b
 ---
 
 <!-- Sem disable-model-invocation de propósito: /fix-issue e o próprio Claude usam esta skill.
-     O humano continua no controle: todo `git commit` pede aprovação (regra ask do settings.json). -->
+     Commit é local e desfazível, por isso não pede aprovação: o humano aprova push e PR (regras ask
+     do settings.json), e o CLAUDE.md limita quando commitar. -->
 
 1. `git branch --show-current`: se estiver na `main`, crie antes uma branch `tipo/descricao-curta`
    (`git checkout -b ...`), num comando separado; o guard-bash bloqueia commit na `main`
 2. `git status` e `git diff` (inclusive `--staged`) para entender o escopo; arquivos novos (`??`) contam
 3. Um commit por intenção: agrupe as mudanças relacionadas e adicione com `git add <arquivos>`
-   (nunca `git add -p`, que é interativo)
+   (nunca `git add -p`, que é interativo e trava; para commitar só parte de um arquivo, gere o
+   patch com os trechos certos e use `git apply --cached <patch>`)
 4. Mensagem `tipo(escopo): resumo` no imperativo, até 72 caracteres
    - Tipos: `feat|fix|refactor|perf|test|docs|build|ci|chore`
    - Escopo: o pacote (`api`, `web`) ou a área (`harness`) quando a mudança é local a ele

@@ -1,189 +1,122 @@
 # Harness Claude Code — monorepo Node/TS (pnpm)
 
-Template de engenharia de workflow para começar projetos novos com **Claude Code** num monorepo
-Node/TypeScript. Perfil de permissões: **solo dev** (`acceptEdits` + allowlist + sandbox).
-Encaixes incluídos: **API** (`apps/api`) e **Frontend** (`apps/web`).
-
-Tudo marcado com `ADAPTE` é placeholder deliberado: o harness define o _processo_; as escolhas de
-framework são suas.
+Template para começar projetos com **Claude Code** num monorepo Node/TypeScript: `apps/api`
+(backend) e `apps/web` (frontend), com o processo (hooks, permissões, skills, CI) já montado e as
+escolhas de framework deixadas para você. Tudo marcado com `ADAPTE` é placeholder deliberado.
 
 ## Pré-requisitos
 
-- Claude Code recente (`claude update`); validado na v2.1.284
-- Node 24 LTS (versão no `.nvmrc`) e pnpm: `corepack enable` (Node 24) ou `npm i -g pnpm`. O pnpm
-  assume sozinho a versão fixada em `packageManager`
-- `jq` (requisito dos hooks) e `gh` autenticado (`gh auth login`), usado por `/fix-issue`, `/pr` e
-  `/install-github-app`
-- Linux/WSL2: `bubblewrap` e `socat` para o sandbox (o macOS não precisa de nada; o devcontainer já traz)
+- Claude Code recente (`claude update`); validado na v2.1.312
+- Node 24 (`.nvmrc`) e pnpm via `corepack enable` (assume a versão de `packageManager`)
+- `npm install -g typescript-language-server typescript`: o plugin `typescript-lsp` (habilitado no
+  `settings.json`) dá ao Claude diagnósticos após cada edição e navegação por símbolo
+- `jq` (os hooks de segurança bloqueiam sem ele) e `gh` autenticado (`gh auth login`)
+- Linux/WSL2: `bubblewrap` e `socat` para o sandbox (macOS não precisa; o devcontainer já traz)
 
-## Começando um projeto novo
+## Começando
 
-1. **Crie o repo** a partir deste (GitHub → _Use this template_, ou copie o conteúdo para um repo vazio).
-2. `pnpm install`. O `pnpm-lock.yaml` já vem versionado: comite-o sempre que as dependências mudarem
-   (o CI usa `--frozen-lockfile`). Versões publicadas há menos de 24h são recusadas de propósito
-   (`minimumReleaseAge` em `pnpm-workspace.yaml`).
-3. `claude` na **raiz do repo** e aceite o diálogo de confiança. Ele lista o que o
-   `.claude/settings.json` libera: as regras `allow` só valem após o aceite; `deny` e `ask` valem desde já.
-4. Verifique o carregamento:
-   - `/context`: o CLAUDE.md (as rules têm `paths:` e só aparecem depois que o Claude lê um arquivo
-     do caminho delas; o smoke test do passo 5 carrega typescript e api)
-   - `/hooks`: 5 hooks (SessionStart, 2× PreToolUse, PostToolUse, Stop)
-   - `/sandbox`: sandbox ativo, sem dependências faltando
-   - `/permissions`: regras allow/ask/deny · digite `/` para ver as skills
-5. Smoke test do loop: peça uma mudança pequena num arquivo de `apps/api/src/`. ESLint e Prettier
-   rodam sozinhos (hook), a rule de API carrega e, ao terminar, o hook `Stop` roda typecheck + testes
-   relacionados.
-6. **Ideia ainda crua?** Siga o [milestone 0](#milestone-0-fundação-do-projeto): `/foundation`
-   entrevista você, propõe stacks para você escolher e adapta o scaffold com a sua aprovação.
-   **Stack já decidida?** Resolva os `ADAPTE` (`git grep -n ADAPTE`), no mínimo: nome e descrição no
-   `CLAUDE.md`, os `CLAUDE.md` dos apps, os scripts `dev`, `docs/architecture.md` e o `name` do
-   `package.json`. Registre a stack com `/adr`.
-7. CI com Claude (opcional): `/install-github-app` instala o app e o secret. Os workflows já estão
-   aqui, com os nomes que o comando gera (`claude.yml`, `claude-code-review.yml`): se ele oferecer
-   sobrescrevê-los, compare antes (os gerados não têm o `vars.CLAUDE_CI == 'true' &&` no `if`).
-   Eles ficam desligados (jobs _skipped_) até você criar, depois do app e do secret, a variável do
-   repositório `CLAUDE_CI=true`: `gh variable set CLAUDE_CI --body true`.
-8. **Proteja a `main`** (Settings → Rules → Rulesets → New branch ruleset, alvo `main`): exija PR,
-   exija o check `checks` do CI e bloqueie force push. Sem isso o CI só informa, não bloqueia. Em
-   repositório privado, rulesets exigem GitHub Pro/Team.
+1. Crie o repo a partir deste (GitHub → _Use this template_) e rode `pnpm install`. Comite o
+   `pnpm-lock.yaml` sempre que as dependências mudarem (o CI usa `--frozen-lockfile`). Versões
+   publicadas há menos de 24h são recusadas de propósito (`pnpm-workspace.yaml`).
+2. `claude` na **raiz** e aceite o diálogo de confiança (as regras `allow` e os hooks só valem
+   depois dele). Confira com `/hooks` (5 hooks), `/sandbox` (ativo) e `/permissions`.
+3. Smoke test: peça uma mudança pequena em `apps/api/src/`. ESLint e Prettier rodam no arquivo
+   (hook) e, ao terminar, o hook `Stop` roda typecheck + testes relacionados.
+4. **Ideia ainda crua?** `/foundation "sua ideia em 1-2 frases"`: entrevista,
+   `docs/product.md`, 2-3 stacks para você escolher, ADR `001-stack.md` e a adaptação do scaffold
+   (só aplica com a sua aprovação). **Stack decidida?** Resolva os `git grep -n ADAPTE` e o `name`
+   do `package.json`, e registre a stack com `/adr`.
+5. **Proteja a `main`** (Settings → Rules → Rulesets): exija PR e o check `checks` do CI e bloqueie
+   force push. Sem isso o CI só informa. Em repo privado, rulesets exigem GitHub Pro/Team.
+6. _Opcional_, Claude no GitHub: `/install-github-app` (app + secret) e depois
+   `gh variable set CLAUDE_CI --body true`. Sem a variável os workflows com Claude ficam _skipped_.
+   Se o comando oferecer sobrescrever `claude.yml`/`claude-code-review.yml`, recuse: os daqui têm o
+   opt-in `CLAUDE_CI` e a proteção contra forks.
 
-> **Sessões na raiz, por design**: hooks e permissions carregam do `.claude/` do diretório onde a
-> sessão inicia, sem fallback para os pais. Inicie sempre na raiz: CLAUDE.md aninhados e rules com
-> `paths:` fazem o escopo por você. Se um dia valer iniciar dentro de um pacote,
-> crie ali um `.claude/settings.json` cujos hooks apontem para os scripts da raiz; copiar o da raiz
-> sem ajuste deixa os hooks sem efeito.
+Inicie as sessões sempre na raiz: `settings.json` e hooks não são herdados de diretórios pais, e os
+`CLAUDE.md` dos pacotes e as rules com `paths:` já fazem o escopo por pasta.
 
 ## O que cada peça faz
 
-| Peça                              | Papel                                                                                                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `CLAUDE.md` (raiz)                | Fatos que valem em toda sessão: comandos, convenções, workflow, gotchas. Alvo ≤200 linhas.                                                             |
-| `apps/*/CLAUDE.md`                | Contexto do pacote; carrega sob demanda ao trabalhar nele (soma-se à raiz).                                                                            |
-| `.claude/rules/*.md`              | Convenções por caminho (`paths:`): typescript, testing, api, web e harness (para quem edita o próprio harness).                                        |
-| `.claude/settings.json`           | Permissões (allow/ask/deny), sandbox e registro dos hooks. Versionado; ajustes pessoais em `settings.local.json` (gitignored).                         |
-| `.claude/hooks/`                  | Determinístico; veja [Hooks](#hooks). Todos têm casos em `scripts/test-hooks.sh` (roda no CI).                                                         |
-| `.claude/skills/`                 | Fluxos: `/foundation`, `/spec`, `/adr`, `/fix-issue` (só você invoca) e `/commit`, `/pr` (você ou o Claude; commit, push e PR sempre pedem aprovação). |
-| `.claude/agents/code-reviewer.md` | Revisor de convenções em contexto isolado, instruído a não editar. Chame com `@agent-code-reviewer`; complementa o `/code-review` (bugs).              |
-| `docs/`                           | `architecture.md` (vivo), `decisions/` (ADRs via `/adr`), `specs/` (via `/spec`). Referenciados por caminho, nunca `@`-importados.                     |
-| `.github/`                        | `ci.yml` gateia merge (sem Claude); `claude-code-review.yml` revisa PRs (advisory); `claude.yml` responde a `@claude`; `dependabot.yml`.               |
-| `.devcontainer/`                  | Ambiente padronizado com Claude Code, `gh` e sandbox. Não é isolamento: para `--dangerously-skip-permissions`, use o devcontainer **oficial**.         |
-| `vitest.config.ts`                | Faz o vitest da raiz (hook `Stop`, `pnpm vitest run`) usar a config de cada pacote.                                                                    |
-| `.worktreeinclude`                | Arquivos gitignored (`.env` locais) copiados para worktrees criadas pelo Claude Code. A worktree nasce sem `node_modules`: rode `pnpm install` nela.   |
+| Peça                              | Papel                                                                                                      |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `CLAUDE.md`                       | O que vale em toda sessão: comandos, workflow, gotchas. Curto de propósito.                                |
+| `apps/*/CLAUDE.md`                | Convenções do pacote; carregam quando o Claude lê ou edita algo ali.                                       |
+| `.claude/rules/*.md`              | Convenções transversais por glob (`paths:`): typescript, testing e harness.                                |
+| `.claude/settings.json`           | Permissões (allow/ask/deny), sandbox e hooks. Ajustes pessoais: `settings.local.json` (gitignored).        |
+| `.claude/hooks/`                  | O que precisa acontecer sempre (abaixo). Cada script explica a si mesmo no cabeçalho.                      |
+| `.claude/skills/`                 | `/foundation`, `/spec`, `/adr`, `/fix-issue` (só você inicia); `/commit`, `/pr` (você ou o Claude).        |
+| `.claude/agents/code-reviewer.md` | Revisor de convenções em contexto isolado, no `/pr` ou `@agent-code-reviewer`. Bugs: `/code-review`.       |
+| `docs/`                           | `architecture.md` (vivo), `decisions/` (ADRs), `specs/`. Referenciados por caminho, nunca `@`-importados.  |
+| `.github/`                        | `ci.yml` (gate de merge, sem Claude), `claude-code-review.yml` e `claude.yml` (advisory), `dependabot.yml` |
+| `.devcontainer/`                  | Ambiente padronizado, opcional. Não é isolamento: para `--dangerously-skip-permissions`, use o oficial.    |
+| `scripts/test-hooks.sh`           | Regressão dos hooks (roda no CI). Mudou um hook? Acrescente o caso.                                        |
 
-### Hooks
+**Hooks**: `session-start` avisa (só quando há problema) sobre `jq`, `typescript-language-server`
+(fora do CI), dependências e sessão na `main` · `protect-files` bloqueia edição de `.env*`, `pnpm-lock.yaml` e `.git/` · `guard-bash`
+bloqueia `rm -r` amplo, `curl | sh`, descarte de trabalho (`checkout .`, `reset --hard`, `clean -f`,
+`stash drop`) e commit na `main` · `check-ts` roda ESLint `--fix` (sem `no-unused-vars`, que
+acusaria a edição pela metade) + Prettier no arquivo editado · `verify-on-stop` roda typecheck +
+`vitest --changed` (o mesmo que `pnpm run verify`) se a sessão editou `.ts` e o diff ainda não
+foi aprovado, e bloqueia o 1º encerramento com erro. Os de segurança falham fechado sem `jq`; os
+de conveniência, aberto.
 
-| Hook                | Evento                                 | O que garante                                                                                                                                                                                |
-| ------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `session-start.sh`  | SessionStart                           | Avisa, só quando há problema, se falta `jq`, se faltam dependências ou se a sessão está na `main`. Roda de novo após `/clear`, retomada, fork e compactação, seguindo o `cwd` (worktree).    |
-| `protect-files.sh`  | PreToolUse `Edit\|Write`               | Bloqueia edição de `.env*`, `pnpm-lock.yaml` e `.git/`.                                                                                                                                      |
-| `guard-bash.sh`     | PreToolUse `Bash\|Monitor\|PowerShell` | Bloqueia `rm -r` em alvo amplo (inclusive `.git`), download canalizado para interpretador, descarte de trabalho (`checkout .`, `reset --hard`, `clean -f`, `stash drop`) e commit na `main`. |
-| `check-ts.sh`       | PostToolUse `Edit\|Write`              | ESLint `--fix` + Prettier no arquivo tocado; erro de lint volta ao Claude. Marca a sessão que editou `.ts`.                                                                                  |
-| `verify-on-stop.sh` | Stop                                   | Se a sessão editou `.ts`, roda typecheck + `vitest --changed`; falhou, bloqueia o 1º encerramento e devolve o erro. WIP que o Claude não tocou não dispara.                                  |
+## Fluxo de trabalho
 
-Hooks de segurança falham **fechado** sem `jq`; os de conveniência falham aberto. Os hooks seguem o
-`cwd` do Claude, então funcionam também em worktrees. Mudou um hook? Acrescente o caso em
-`scripts/test-hooks.sh` e rode `pnpm run test:hooks`.
+1. **Planejar**: plan mode (Shift+Tab). Feature grande: `/spec`, que entrega a branch e o prompt
+   para implementar numa sessão nova (`/clear`).
+2. **Implementar**: hooks e convenções trabalham no fundo.
+3. **Revisar**: `/code-review` (bugs). O `code-reviewer` (convenções; sugere candidatos a regra)
+   roda no `/pr`; para antes, `@agent-code-reviewer`.
+4. **Entregar**: `/commit` → `/pr` (roda `pnpm run check` e o `code-reviewer`, faz push, abre o PR
+   e acompanha o CI). Push e PR sempre pedem aprovação; commit não, por ser local e desfazível.
 
-## O fluxo de trabalho embutido
+## Segurança em camadas
 
-1. **Explorar/planejar**: plan mode (Shift+Tab). Feature grande: `/spec`, que termina com a branch e
-   o prompt para a sessão nova.
-2. **Implementar**: hooks e rules trabalham no fundo; o hook `Stop` bloqueia o primeiro encerramento
-   com typecheck/teste quebrado e devolve o erro ao Claude (a nova tentativa não é reverificada).
-3. **Revisar**: `/code-review` (bugs de corretude; `--fix` aplica) e `@agent-code-reviewer`
-   (aderência a CLAUDE.md/rules; sugere candidatos a regra). Corrija os críticos.
-4. **Commitar e abrir PR**: `/commit` (cria branch se estiver na `main`) → `/pr` (roda
-   `pnpm run check`, faz push, abre o PR com a evidência de verificação e acompanha o CI). Commit,
-   push e PR pedem aprovação.
-5. `/clear` entre tarefas não relacionadas.
+Nenhuma camada basta sozinha; juntas cobrem erro do modelo e comando indireto.
 
-## Milestone 0 (fundação do projeto)
+1. **Modo de permissão**: o projeto não fixa `defaultMode`, então vale o padrão do Claude Code
+   (auto mode desde a v2.1.283: um classificador revisa as ações). Quer aprovar cada ação? Ponha
+   `"defaultMode": "default"` no seu `settings.local.json` (`acceptEdits` aprova edições sozinho e
+   pede só comandos).
+2. **Regras** (`settings.json`), que valem em qualquer modo e antes do classificador. `allow`: o
+   ciclo interno (scripts pnpm, vitest/tsc/eslint/prettier, git local, leitura no `gh`, docs
+   oficiais). `ask`: o que sai da máquina, toca supply chain ou muda o CI (push, escrita no
+   GitHub, instalar ou executar pacotes, editar `.github/workflows/`). `deny`: segredos (`.env*`,
+   `secrets/`, `*.pem`, `*.key`), force push, `publish` e `curl`/`wget`.
+3. **Sandbox do Bash**, em modo estrito: escrita só no projeto (+ cache do pnpm); rede só para o npm
+   registry e o GitHub; `sandbox.credentials` esconde `~/.ssh`, `~/.aws`, `~/.kube` etc. e tokens
+   do ambiente. Com `allowUnsandboxedCommands: false` o Claude não consegue sair dele: comando
+   barrado volta para você (`/sandbox` ou `! comando`), em vez de ir ao classificador do auto mode.
+   Só o `gh` roda fora (o TLS falha no macOS), e passa pelas regras. No macOS o dev server
+   sobe dentro do sandbox (`allowLocalBinding`); no Linux essa chave não tem efeito: rode-o num
+   terminal seu. Domínio novo:
+   `sandbox.network.allowedDomains`, nunca desligar o sandbox. Registry privado: tire o
+   `NPM_TOKEN` de `credentials.envVars`. `git push` por SSH falha no sandbox: use HTTPS.
+4. **Protected paths nativos**: edição em `.claude/`, `.git/`, `.devcontainer/` etc. pede
+   confirmação em `default`/`acceptEdits`; no auto mode vai ao classificador. Para revisar cada
+   mudança no harness, use o modo `default` e não libere a pasta `.claude` para a sessão.
+5. **Hooks**: padrões que regras de prefixo não capturam. **CI**: gate de merge via ruleset.
 
-1. Repo novo, com os passos 1–5 de [Começando](#começando-um-projeto-novo) feitos
-2. `/model opus`: decisões estruturais valem o custo
-3. `/foundation "sua ideia em 1-2 frases"` → entrevista em fases (problema/usuário → escopo →
-   restrições → stack) → `docs/product.md` → 2-3 stacks com trade-offs, você escolhe →
-   `docs/decisions/001-stack.md`
-4. O Claude propõe a adaptação do scaffold (`ADAPTE`s, encaixes, dependências, scripts `dev`) e só
-   aplica após a sua aprovação → `/commit`
-5. `/clear` e `/model sonnet` (volta ao modelo do dia a dia)
-6. `/spec "Milestone 0: fundação"`: agora há convenções para seguir
-7. `/clear` → cole o prompt que o `/spec` entregou → `/code-review` → `/commit` → `/pr`
-
-## Segurança em camadas (perfil solo)
-
-Nenhuma camada sozinha é suficiente; juntas, cobrem erro do modelo e comando indireto.
-
-1. **Regras de permissão** (`settings.json`). Com o sandbox em auto-allow, o Bash sandboxed roda sem
-   prompt: quem separa o seguro do arriscado são `ask` e `deny`.
-   - **allow**: ciclo interno (scripts pnpm, vitest/tsc/eslint/prettier, git local, leitura de
-     issues, PRs e CI no `gh`, docs oficiais via WebFetch).
-   - **ask**: o que sai da máquina, toca supply chain ou muda o CI: `git commit/push`,
-     `git branch -D`, escrita no GitHub (`gh pr create/merge/review`, `gh issue create/comment/close`,
-     `gh api`, `gh release`, `gh repo`), instalar ou executar pacotes (`pnpm install/add/remove/update`,
-     inclusive com `-F`/`--filter`; `pnpm dlx/create`, `npx`, `npm install/ci/exec`) e edição de
-     `.github/workflows/` pela ferramenta Edit (escrita via Bash não passa por essa regra). Regra
-     `ask` explícita nunca é auto-aprovada, em nenhum modo. Os demais comandos `gh` que não estão no
-     allow (ex.: `gh pr comment`) também pedem aprovação, porque o `gh` roda fora do sandbox.
-   - **deny**: segredos do projeto (`.env*`, `secrets/`, `*.pem`, `*.key`; o deny de leitura também
-     bloqueia edição), `git push --force`/`-f` (outras formas caem no `ask` de `git push`),
-     `publish` e rede crua (`curl`/`wget`; use WebFetch).
-2. **Protected paths nativos**: edições em `.claude/`, `.git/`, `.devcontainer/`, `.vscode/` etc.
-   pedem confirmação em Manual/acceptEdits, vão ao classificador em auto mode e só passam direto em
-   `bypassPermissions`. Para revisar cada mudança no harness, não aceite a opção de liberar a pasta
-   `.claude` pelo resto da sessão.
-3. **Sandbox do Bash**: escrita só no projeto (+ store e cache do pnpm); rede só para
-   `registry.npmjs.org` e GitHub (+ domínios do WebFetch). A leitura fora do projeto é livre por
-   padrão, então `sandbox.credentials` bloqueia `~/.ssh`, `~/.aws`, `~/.config/gcloud`, `~/.kube` e
-   `~/.docker/config.json` e tira do ambiente `GITHUB_TOKEN`, `GH_TOKEN`, `NPM_TOKEN` e credenciais
-   AWS. ADAPTE: registry privado precisa de `NPM_TOKEN` (tire-o de `credentials.envVars`); com
-   `git push` por SSH, o push sandboxed não lê `~/.ssh`, falha e é refeito fora do sandbox, com
-   aprovação (ou use HTTPS). O `gh` roda fora do sandbox (`excludedCommands`, porque o TLS falha no
-   macOS) quando é o comando inteiro, sem pipe nem `&&`, e passa pelas regras de permissão. No macOS, o servidor local
-   (`pnpm dev`) sobe dentro do sandbox via `allowLocalBinding`; no Linux essa chave não tem efeito:
-   rode o dev server num terminal seu. Domínio novo? `/sandbox` ou `sandbox.network.allowedDomains`.
-4. **Hooks**: padrões que regras de prefixo não capturam (veja [Hooks](#hooks)).
-5. **CI**: `ci.yml` gateia merge via ruleset da `main` (passo 8); os workflows com Claude são advisory.
-
-Deny vence allow em qualquer escopo. Ajustes só na sua máquina: `.claude/settings.local.json`.
-
-**Perfil de time**: `"defaultMode": "default"` (Manual; com o sandbox em auto-allow, o Bash segue sem
-prompts) e `"permissions": { "disableBypassPermissionsMode": "disable" }` (de preferência em managed
-settings); as regras `ask` já valem como estão. **Alternativa**: auto mode, o modo inicial do Claude Code desde
-a v2.1.283 quando o projeto não fixa `defaultMode`: um classificador revisa as ações, e as regras
-`ask` continuam perguntando.
+Perfil de time: `"permissions": { "disableBypassPermissionsMode": "disable" }`, de preferência em
+managed settings.
 
 ## Custos de CI
 
-- `claude-code-review.yml` e `claude.yml` só rodam com a variável `CLAUDE_CI=true`; sem ela, nenhum
-  runner sobe para o Claude.
-- `claude-code-review.yml`: plugin oficial `code-review` com comentários inline. Uma revisão por PR
-  (abertura, _ready for review_, reabertura); pula rascunhos, forks (sem o secret), bots e PRs que já
-  têm comentário do Claude (revisão anterior ou resposta a um `@claude`);
-  `timeout-minutes: 15` e `concurrency`. Só PRs de docs para humanos (`docs/`, `README.md`) não
-  disparam: CLAUDE.md, rules, skills e workflows são revisados.
-- `claude.yml`: só roda com `@claude` de quem tem acesso ao repo e nunca em PR de fork (código de
-  terceiros com secrets); instala as dependências do PR para o Claude rodar lint, typecheck e testes;
-  commits pela API do GitHub; `--max-turns 25`, `timeout-minutes: 30`.
-- Modelo **fixado** pelo ID completo (`claude-sonnet-5-5`): aliases mudam com o tempo.
-- `dependabot.yml`: actions e dependências npm, semanal e agrupado.
+Os workflows com Claude só sobem runner com `CLAUDE_CI=true`. O review roda uma vez por PR (pula
+rascunho, fork, bot e PR só de docs) e o `@claude` só responde a quem tem acesso ao repo, nunca em
+PR de fork. Ambos têm `timeout-minutes`, `concurrency` e modelo fixado pelo ID completo.
 
-## Como estender (gatilhos)
+## Como estender
 
-| Sintoma                                         | Ação                                                                         |
-| ----------------------------------------------- | ---------------------------------------------------------------------------- |
-| Claude erra a mesma coisa pela 2ª vez           | Linha no `CLAUDE.md` (ou na rule, se for de uma área)                        |
-| O `code-reviewer` listou um "candidato a regra" | Idem: a linha e o destino já vêm prontos                                     |
-| Você cola o mesmo procedimento de novo          | Vire skill em `.claude/skills/` (`argument-hint` entre aspas)                |
-| Algo deve acontecer SEMPRE                      | Hook ou lint, não instrução, com caso em `scripts/test-hooks.sh`             |
-| Investigação enche o contexto                   | "use um subagent para investigar X"                                          |
-| Comando precisa de um domínio novo              | `sandbox.network.allowedDomains` (não desligue o sandbox)                    |
-| Instruções parecem velhas ou contraditórias     | `/doctor prompt-audit` (audita CLAUDE.md, rules, skills e agents; só propõe) |
-| Segundo repositório quer este setup             | Empacote como plugin                                                         |
+| Sintoma                                     | Ação                                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Claude erra a mesma coisa pela 2ª vez       | Uma linha no `CLAUDE.md` (ou no do pacote)                                                        |
+| Precisa valer sempre, sem exceção           | Lint ou hook (com caso em `scripts/test-hooks.sh`), não instrução                                 |
+| Você cola o mesmo procedimento de novo      | Vire skill em `.claude/skills/`                                                                   |
+| Novo pacote em `packages/` ou `apps/`       | `tsconfig.json` como o de `apps/api` (sem ele o ESLint falha); `CLAUDE.md` só com convenção local |
+| Instruções parecem velhas ou contraditórias | `/doctor prompt-audit`                                                                            |
+| Segundo repositório quer este setup         | Empacote como plugin                                                                              |
 
-## Fontes
-
-Os padrões deste harness vêm da documentação oficial do Claude Code (<https://code.claude.com/docs>):
-memory/CLAUDE.md, rules, skills, hooks, permissions, permission modes, sandboxing, subagents,
-monorepos, worktrees, devcontainer e GitHub Actions. O que é escolha do template, e não regra da
-ferramenta, está marcado com `ADAPTE`.
+Fonte dos padrões: a documentação oficial do Claude Code (<https://code.claude.com/docs>),
+principalmente _Best practices_, _Memory_, _Permissions_, _Sandboxing_, _Hooks_ e _Monorepos_.

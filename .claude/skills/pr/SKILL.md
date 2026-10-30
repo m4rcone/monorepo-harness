@@ -11,8 +11,10 @@ Abra o PR da branch atual. Referência (opcional): $ARGUMENTS
 
 1. Pare se estiver na `main` ou se `git status --short` não estiver vazio: sugira a skill `commit`
 2. `pnpm run check` (os mesmos passos do CI) e guarde o resultado; falhou → corrija e commite antes
-3. `git push -u origin HEAD`
-4. Escreva o corpo com a ferramenta Write num arquivo fora do repo (o scratchpad da sessão):
+3. Revise a branch com o subagent `code-reviewer`. Achado crítico → corrija, commite (skill `commit`)
+   e volte ao passo 2. Aviso que você não corrigir vai para **Riscos** no corpo do PR
+4. `git push -u origin HEAD`
+5. Escreva o corpo com a ferramenta Write num arquivo fora do repo (o scratchpad da sessão):
    - **O quê e por quê**: 2-4 linhas
    - **Referência**: `Closes #N` ou o caminho do spec
    - **Como verifiquei**: comandos rodados e resultado
@@ -20,5 +22,5 @@ Abra o PR da branch atual. Referência (opcional): $ARGUMENTS
 
    Depois rode, como comando único: `gh pr create --title "<tipo(escopo): resumo do conjunto>" --body-file <caminho absoluto>`
 
-5. Mostre o link do PR. Acompanhe o CI com `gh pr checks --watch` em background; se falhar,
+6. Mostre o link do PR. Acompanhe o CI com `gh pr checks --watch` em background; se falhar,
    `gh run view <id> --log-failed` (sem pipe) e proponha a correção
