@@ -81,7 +81,7 @@ Nenhuma camada basta sozinha; juntas cobrem erro do modelo e comando indireto.
    pede só comandos).
 2. **Regras** (`settings.json`), que valem em qualquer modo e antes do classificador. `allow`: o
    ciclo interno (scripts pnpm, vitest/tsc/eslint/prettier, git local, leitura no `gh`, docs
-   oficiais). `ask`: o que sai da máquina, toca supply chain ou muda o CI (commit/push, escrita no
+   oficiais). `ask`: o que sai da máquina, toca supply chain ou muda o CI (push, escrita no
    GitHub, instalar ou executar pacotes, editar `.github/workflows/`). `deny`: segredos (`.env*`,
    `secrets/`, `*.pem`, `*.key`), force push, `publish` e `curl`/`wget`.
 3. **Sandbox do Bash**, em modo estrito: escrita só no projeto (+ cache do pnpm); rede só para o npm
